@@ -59,7 +59,7 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
   };
 
   const handleToggleWishlist = () => {
-    toggleWishlist(product.id);
+    toggleWishlist(product);
     if (!isWishlisted) {
       toast.success(t("product.addedToWishlist") || "Added to favorites", {
         description: getName(),
