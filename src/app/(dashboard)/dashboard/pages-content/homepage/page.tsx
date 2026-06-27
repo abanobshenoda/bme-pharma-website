@@ -48,7 +48,7 @@ import type {
   StatisticsSection,
   StatisticsItem,
 } from "@/generated/prisma/client";
-import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
+import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
 
 interface StatisticsSectionWithItems extends StatisticsSection {
   items: StatisticsItem[];
@@ -622,7 +622,7 @@ export default function HomepageContent() {
         {/* Hero Image Upload */}
         <div className="grid gap-2">
           <Label>Hero Image</Label>
-          <CloudinaryUploadWidget
+          <CloudinaryMediaPicker
             value={editingHero.image || ""}
             onUpload={(url) => setEditingHero({ ...editingHero, image: url })}
             onRemove={() => setEditingHero({ ...editingHero, image: "" })}
@@ -1005,7 +1005,7 @@ export default function HomepageContent() {
               <div className="absolute inset-0 bg-black/50" />
             </Card>
           )}
-          <CloudinaryUploadWidget
+          <CloudinaryMediaPicker
             value={editingWhoWeAreSection.backgroundImage || ""}
             onUpload={(url) =>
               setEditingWhoWeAreSection({

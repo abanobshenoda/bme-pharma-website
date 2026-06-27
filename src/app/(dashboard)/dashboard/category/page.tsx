@@ -36,7 +36,7 @@ import {
 } from "@/actions/category-actions";
 import { toast } from "sonner";
 import { Category } from "@/generated/prisma/client";
-import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
+import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
 
 type CategoryWithProducts = Category & {
   products: any[];
@@ -219,7 +219,7 @@ export default function CategoryPage() {
               {/* Image Upload */}
               <div className="grid gap-2">
                 <Label>Image</Label>
-                <CloudinaryUploadWidget
+                <CloudinaryMediaPicker
                   value={formData.image}
                   onUpload={(url) => setFormData({ ...formData, image: url })}
                   onRemove={() => setFormData({ ...formData, image: "" })}

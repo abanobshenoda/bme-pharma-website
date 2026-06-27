@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
+import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
 
 export default function GalleryImagesPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -145,7 +145,7 @@ export default function GalleryImagesPage() {
           </div>
           <div className="grid gap-2 md:col-span-2">
             <Label>Upload Image</Label>
-            <CloudinaryUploadWidget
+            <CloudinaryMediaPicker
               value=""
               onUpload={handleUpload}
               onRemove={() => {}}

@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
+import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
 
 const EMPTY_FORM: ProductInput = {
   english_name: "",
@@ -364,7 +364,7 @@ export default function ProductsPage() {
             {/* Main Image */}
             <div className="space-y-2">
               <Label>Main Image</Label>
-              <CloudinaryUploadWidget
+              <CloudinaryMediaPicker
                 value={form.image || ""}
                 onUpload={(url) => setForm((prev) => ({ ...prev, image: url }))}
                 onRemove={() => setForm((prev) => ({ ...prev, image: "" }))}
@@ -396,7 +396,7 @@ export default function ProductsPage() {
                   ))}
                 </div>
               )}
-              <CloudinaryUploadWidget
+              <CloudinaryMediaPicker
                 value=""
                 onUpload={(url) =>
                   setForm((prev) => ({

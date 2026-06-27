@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Save, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
+import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
 import Image from "next/image";
 
 import {
@@ -866,7 +866,7 @@ const PersonSectionCard = ({
             {/* Image Upload */}
             <div className="space-y-2">
               <Label>Photo</Label>
-              <CloudinaryUploadWidget
+              <CloudinaryMediaPicker
                 value={item.image || ""}
                 onUpload={(url) => onUpdate(item.id, "image", url)}
                 onRemove={() => onUpdate(item.id, "image", "")}
