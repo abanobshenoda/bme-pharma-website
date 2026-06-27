@@ -40,6 +40,7 @@ export const createCategory = async (data: CategoryInput) => {
       },
     });
     revalidatePath("/dashboard/category");
+    revalidatePath("/");
     return { success: true, data: newCategory };
   } catch (error) {
     console.error("Failed to create category:", error);
@@ -61,6 +62,7 @@ export const updateCategory = async (
       },
     });
     revalidatePath("/dashboard/category");
+    revalidatePath("/");
     return { success: true, data: updatedCategory };
   } catch (_error) {
     return { success: false, error: "Failed to update category" };
@@ -73,6 +75,7 @@ export const deleteCategory = async (id: number) => {
       where: { id },
     });
     revalidatePath("/dashboard/category");
+    revalidatePath("/");
     return { success: true };
   } catch (_error) {
     return { success: false, error: "Failed to delete category" };
