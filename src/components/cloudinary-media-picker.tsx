@@ -67,6 +67,9 @@ export default function CloudinaryMediaPicker({
   );
   const [activeTab, setActiveTab] = useState("library");
 
+  // Store the Cloudinary widget open() function outside the dialog to avoid focus-trap conflicts
+  const cldOpenRef = useRef<(() => void) | null>(null);
+
   const onUploadRef = useRef(onUpload);
   useEffect(() => {
     onUploadRef.current = onUpload;
@@ -120,6 +123,14 @@ export default function CloudinaryMediaPicker({
     toast.success("Image selected from library");
   };
 
+  // Close the dialog FIRST, then open Cloudinary widget to avoid focus-trap conflict
+  const handleOpenUploadWidget = () => {
+    setIsOpen(false);
+    setTimeout(() => {
+      cldOpenRef.current?.();
+    }, 150);
+  };
+
   const onUploadSuccess = useCallback((result: unknown) => {
     const widgetResult = result as CloudinaryResult;
     if (
@@ -130,7 +141,6 @@ export default function CloudinaryMediaPicker({
       const url = (widgetResult.info as { secure_url: string }).secure_url;
       const optimizedUrl = url.replace("/upload/", "/upload/f_auto,q_auto/");
       onUploadRef.current(optimizedUrl);
-      setIsOpen(false);
     }
   }, []);
 
@@ -142,6 +152,34 @@ export default function CloudinaryMediaPicker({
 
   return (
     <>
+      {/* CldUploadWidget lives OUTSIDE the Dialog to avoid focus-trap conflicts */}
+      <CldUploadWidget
+        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+        onSuccess={(result) => {
+          onUploadSuccess(result);
+        }}
+        options={{
+          maxFiles: 1,
+          maxFileSize: 2000000,
+          maxImageWidth: 1920,
+          maxImageHeight: 1080,
+          cropping: true,
+          croppingAspectRatio: 16 / 9,
+          croppingShowDimensions: true,
+          sources: ["local", "url", "camera"],
+        }}
+        onError={(err) => {
+          console.error("Cloudinary Widget Error:", err);
+          toast.error("Upload Failed. Check console.");
+        }}
+      >
+        {({ open }) => {
+          // Capture open() so we can call it after dialog closes
+          cldOpenRef.current = open;
+          return null;
+        }}
+      </CldUploadWidget>
+
       {/* Main Trigger Area */}
       <div className="space-y-4 w-full flex flex-col items-center justify-center">
         <div className="relative border-dashed border-2 p-4 border-gray-300 flex flex-col items-center justify-center gap-4 h-60 w-full rounded-md overflow-hidden bg-muted/30">
@@ -232,7 +270,6 @@ export default function CloudinaryMediaPicker({
               value="library"
               className="flex-1 flex flex-col overflow-hidden mt-0 px-6 pb-6 pt-4"
             >
-              {/* Search */}
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -243,7 +280,6 @@ export default function CloudinaryMediaPicker({
                 />
               </div>
 
-              {/* Images Grid */}
               <div className="flex-1 overflow-y-auto">
                 {isLoadingImages ? (
                   <div className="flex items-center justify-center h-48">
@@ -284,15 +320,12 @@ export default function CloudinaryMediaPicker({
                             className="object-cover"
                             sizes="(max-width: 768px) 33vw, 20vw"
                           />
-                          {/* Hover overlay */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                          {/* Selected checkmark */}
                           {isSelected && (
                             <div className="absolute top-1.5 right-1.5 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
                               <Check className="h-3.5 w-3.5 text-primary-foreground" />
                             </div>
                           )}
-                          {/* Size badge */}
                           <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <p className="text-white text-[10px] truncate">
                               {formatBytes(img.bytes)}
@@ -305,7 +338,6 @@ export default function CloudinaryMediaPicker({
                 )}
               </div>
 
-              {/* Selected image info + action */}
               <div className="mt-4 pt-4 border-t flex items-center justify-between gap-4">
                 <div className="text-sm text-muted-foreground">
                   {filteredImages.length} image
@@ -345,53 +377,30 @@ export default function CloudinaryMediaPicker({
               value="upload"
               className="flex-1 flex flex-col items-center justify-center px-6 pb-6 pt-4 mt-0"
             >
-              <CldUploadWidget
-                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-                onSuccess={(result) => {
-                  console.log("Cloudinary Upload Success:", result);
-                  onUploadSuccess(result);
-                }}
-                options={{
-                  maxFiles: 1,
-                  maxFileSize: 2000000,
-                  maxImageWidth: 1920,
-                  maxImageHeight: 1080,
-                  cropping: true,
-                  croppingAspectRatio: 16 / 9,
-                  croppingShowDimensions: true,
-                  sources: ["local", "url", "camera"],
-                }}
-                onError={(err) => {
-                  console.error("Cloudinary Widget Error:", err);
-                  toast.error("Upload Failed. Check console.");
-                }}
-              >
-                {({ open }) => (
-                  <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Upload className="h-9 w-9 text-primary" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-medium">Upload a New Image</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Max 2MB · Auto-cropped to 16:9 · Saved to Cloudinary
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => open()}
-                      className="gap-2 w-full"
-                    >
-                      <Upload className="h-4 w-4" />
-                      Choose File to Upload
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Tip: Check the Library tab first to avoid uploading
-                      duplicate images
-                    </p>
-                  </div>
-                )}
-              </CldUploadWidget>
+              <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Upload className="h-9 w-9 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="font-medium">Upload a New Image</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Max 2MB · Auto-cropped to 16:9 · Saved to Cloudinary
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleOpenUploadWidget}
+                  className="gap-2 w-full"
+                >
+                  <Upload className="h-4 w-4" />
+                  Choose File to Upload
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  This dialog will close and the upload window will open.
+                  <br />
+                  Tip: Check the Library tab first to avoid duplicate uploads.
+                </p>
+              </div>
             </TabsContent>
           </Tabs>
         </DialogContent>
