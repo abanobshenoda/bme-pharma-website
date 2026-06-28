@@ -28,6 +28,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   MoreHorizontal,
   Eye,
@@ -38,6 +46,8 @@ import {
   Loader2,
   Printer,
   Trash2,
+  Search,
+  RotateCcw,
 } from "lucide-react";
 import {
   updateOrderStatus,
@@ -58,7 +68,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 
 // Reusing types roughly matching our Prisma schema
-type OrderItem = {
+export type OrderItem = {
   id: string;
   productName: string;
   quantity: number;
@@ -66,7 +76,7 @@ type OrderItem = {
   totalPrice: number;
 };
 
-type Order = {
+export type Order = {
   id: string;
   customerName: string;
   customerPhone: string;
@@ -90,6 +100,48 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [isUpdating, setIsUpdating] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [paymentFilter, setPaymentFilter] = useState("ALL");
+  const [methodFilter, setMethodFilter] = useState("ALL");
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("ALL");
+    setPaymentFilter("ALL");
+    setMethodFilter("ALL");
+  };
+
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    statusFilter !== "ALL" ||
+    paymentFilter !== "ALL" ||
+    methodFilter !== "ALL";
+
+  // Compute filtered orders
+  const filteredOrders = orders.filter((order) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      !searchQuery ||
+      order.customerName.toLowerCase().includes(q) ||
+      order.customerEmail.toLowerCase().includes(q) ||
+      order.customerPhone.includes(searchQuery) ||
+      order.city.toLowerCase().includes(q) ||
+      order.id.toLowerCase().includes(q);
+
+    const matchesStatus =
+      statusFilter === "ALL" || order.orderStatus === statusFilter;
+
+    const matchesPayment =
+      paymentFilter === "ALL" || order.paymentStatus === paymentFilter;
+
+    const matchesMethod =
+      methodFilter === "ALL" || order.paymentMethod === methodFilter;
+
+    return matchesSearch && matchesStatus && matchesPayment && matchesMethod;
+  });
 
   // Helper formats
   const formatPrice = (price: number, currency: string) => {
@@ -197,6 +249,70 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
         <h2 className="text-3xl font-bold tracking-tight">Orders Management</h2>
       </div>
 
+      {/* Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-card p-4 rounded-xl border">
+        <div className="flex flex-col sm:flex-row flex-1 gap-3 items-stretch sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search orders (name, phone, email, city, ID)..."
+              className="pl-9 h-9 text-xs md:text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9 w-[130px] text-xs">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="PROCESSING">Processing</SelectItem>
+                <SelectItem value="SHIPPED">Shipped</SelectItem>
+                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <SelectTrigger className="h-9 w-[130px] text-xs">
+                <SelectValue placeholder="Payment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Payments</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="COMPLETED">Paid</SelectItem>
+                <SelectItem value="FAILED">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={methodFilter} onValueChange={setMethodFilter}>
+              <SelectTrigger className="h-9 w-[130px] text-xs">
+                <SelectValue placeholder="Method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Methods</SelectItem>
+                <SelectItem value="COD">Cash on Delivery</SelectItem>
+                <SelectItem value="MANUAL">Bank/E-Wallet</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {hasActiveFilters && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetFilters}
+            className="h-9 text-xs gap-2 shrink-0 border-dashed"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Clear Filters
+          </Button>
+        )}
+      </div>
+
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
@@ -209,17 +325,30 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
                   className="text-center h-32 text-muted-foreground"
                 >
-                  No orders found.
+                  {orders.length === 0 ? (
+                    "No orders found."
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2 py-4">
+                      <p>No orders match your filter criteria.</p>
+                      <Button
+                        variant="link"
+                        onClick={handleResetFilters}
+                        className="text-xs text-primary font-semibold p-0 h-auto"
+                      >
+                        Clear all filters
+                      </Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
-              orders.map((order) => (
+              filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>
                     <div className="font-medium text-sm flex items-center gap-2">

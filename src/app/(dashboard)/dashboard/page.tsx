@@ -15,32 +15,38 @@ import {
 import prisma from "@/lib/db";
 import { Order } from "@/generated/prisma/client";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   // Fetch statistics in parallel
   const [
     totalUsers,
     totalProducts,
     totalOrders,
-    deliveredOrders,
     pendingOrders,
+    processingOrders,
+    shippedOrders,
+    deliveredOrders,
+    cancelledOrders,
     revenueData,
     recentOrders,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
-    prisma.order.count({ where: { isDeleted: false } as any }),
-    prisma.order.count({ where: { orderStatus: "DELIVERED", isDeleted: false } as any }),
-    prisma.order.count({
-      where: { orderStatus: { in: ["PENDING", "PROCESSING", "SHIPPED"] }, isDeleted: false } as any,
-    }),
+    prisma.order.count({ where: { isDeleted: false } }),
+    prisma.order.count({ where: { orderStatus: "PENDING", isDeleted: false } }),
+    prisma.order.count({ where: { orderStatus: "PROCESSING", isDeleted: false } }),
+    prisma.order.count({ where: { orderStatus: "SHIPPED", isDeleted: false } }),
+    prisma.order.count({ where: { orderStatus: "DELIVERED", isDeleted: false } }),
+    prisma.order.count({ where: { orderStatus: "CANCELLED", isDeleted: false } }),
     prisma.order.aggregate({
       _sum: { total: true },
-      // Calculate revenue from Delivered orders (or COMPLETED payment status)
-      where: { orderStatus: "DELIVERED" },
+      // Calculate revenue from Delivered orders that are not deleted
+      where: { orderStatus: "DELIVERED", isDeleted: false },
     }),
     // Fetch last 5 orders
     prisma.order.findMany({
-      where: { isDeleted: false } as any,
+      where: { isDeleted: false },
       take: 5,
       orderBy: { createdAt: "desc" },
     }),
@@ -88,14 +94,28 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground flex gap-3 mt-1">
-              <span className="text-green-500 font-medium">
-                {deliveredOrders} Delivered
-              </span>
-              <span className="text-amber-500 font-medium">
-                {pendingOrders} Pending
-              </span>
-            </p>
+            <div className="mt-3 pt-3 border-t grid grid-cols-5 gap-1 text-center">
+              <div>
+                <div className="font-bold text-[11px] text-amber-500">{pendingOrders}</div>
+                <div className="text-[9px] text-muted-foreground">Pending</div>
+              </div>
+              <div>
+                <div className="font-bold text-[11px] text-blue-500">{processingOrders}</div>
+                <div className="text-[9px] text-muted-foreground">Processing</div>
+              </div>
+              <div>
+                <div className="font-bold text-[11px] text-purple-500">{shippedOrders}</div>
+                <div className="text-[9px] text-muted-foreground">Shipped</div>
+              </div>
+              <div>
+                <div className="font-bold text-[11px] text-green-500">{deliveredOrders}</div>
+                <div className="text-[9px] text-muted-foreground">Delivered</div>
+              </div>
+              <div>
+                <div className="font-bold text-[11px] text-red-500">{cancelledOrders}</div>
+                <div className="text-[9px] text-muted-foreground">Cancelled</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

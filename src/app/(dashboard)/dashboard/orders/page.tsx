@@ -1,5 +1,7 @@
 import { getOrders } from "@/actions/order-actions";
-import { OrdersClient } from "./orders-client";
+import { OrdersClient, Order } from "./orders-client";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Orders Management | BME Pharma Dashboard",
@@ -18,5 +20,5 @@ export default async function OrdersPage() {
     );
   }
 
-  return <OrdersClient initialOrders={orders as any[]} />;
+  return <OrdersClient initialOrders={orders as unknown as Order[]} />;
 }
