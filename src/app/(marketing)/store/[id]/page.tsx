@@ -24,13 +24,19 @@ export default async function SingleProductPage({
 
   const product = productRes.data;
 
-  // Fetch related products from the same category (exclude current product)
+  // Fetch related products from the same categories (exclude current product)
   const allProductsRes = await getProducts();
+  // Get the IDs of this product's categories
+  const productCategoryIds: number[] = (product as any).categories?.map(
+    (c: any) => c.id,
+  ) ?? [];
   const relatedProducts =
     allProductsRes.success && allProductsRes.data
       ? (allProductsRes.data as any[])
           .filter(
-            (p) => p.categoryId === product.categoryId && p.id !== product.id,
+            (p) =>
+              p.id !== product.id &&
+              p.categories?.some((c: any) => productCategoryIds.includes(c.id)),
           )
           .slice(0, 4)
       : [];
@@ -52,8 +58,10 @@ export default async function SingleProductPage({
         : product.image
           ? [product.image]
           : [],
-    category: (product as any).category?.english_name || "",
-    categoryId: product.categoryId,
+    category:
+      (product as any).categories?.[0]?.english_name ||
+      (product as any).category?.english_name ||
+      "",
     description: {
       en: product.english_description || "",
       ar: product.arabic_description || "",
@@ -71,7 +79,8 @@ export default async function SingleProductPage({
     currency: p.currency,
     discount: p.discount || 0,
     image: p.image || "/placeholder-product.png",
-    category: p.category?.english_name || "",
+    category:
+      p.categories?.[0]?.english_name || p.category?.english_name || "",
     stock: p.stock ?? 0,
     rating: p.rating ?? 0,
     reviews: p.reviews ?? 0,

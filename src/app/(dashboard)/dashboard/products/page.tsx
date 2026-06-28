@@ -16,6 +16,7 @@ import {
   Search,
   Star,
   X,
+  Tags,
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -36,7 +37,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
+
+// Product with many-to-many categories
+type ProductWithCategories = Omit<Product, "categoryId"> & {
+  categories: Category[];
+};
 
 const EMPTY_FORM: ProductInput = {
   english_name: "",
@@ -55,13 +62,11 @@ const EMPTY_FORM: ProductInput = {
   rating: 0,
   reviews: 0,
   isFeatured: false,
-  categoryId: 0,
+  categoryIds: [],
 };
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<
-    (Product & { category: Category })[]
-  >([]);
+  const [products, setProducts] = useState<ProductWithCategories[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -83,12 +88,11 @@ export default function ProductsPage() {
       if (!mounted) return;
 
       if (prodRes.success && prodRes.data) {
-        setProducts(prodRes.data as (Product & { category: Category })[]);
+        setProducts(prodRes.data as unknown as ProductWithCategories[]);
       }
       if (catRes.success && catRes.data) {
         setCategories(catRes.data);
-        if (catRes.data.length > 0 && !initialLoadDone.current) {
-          setForm((prev) => ({ ...prev, categoryId: catRes.data[0].id }));
+        if (!initialLoadDone.current) {
           initialLoadDone.current = true;
         }
       }
@@ -108,7 +112,7 @@ export default function ProductsPage() {
     ]);
 
     if (prodRes.success && prodRes.data) {
-      setProducts(prodRes.data as (Product & { category: Category })[]);
+      setProducts(prodRes.data as unknown as ProductWithCategories[]);
     }
     if (catRes.success && catRes.data) {
       setCategories(catRes.data);
@@ -116,7 +120,7 @@ export default function ProductsPage() {
     setIsLoading(false);
   };
 
-  const handleEdit = (product: Product & { category: Category }) => {
+  const handleEdit = (product: ProductWithCategories) => {
     setEditingId(product.id);
     setForm({
       english_name: product.english_name,
@@ -136,22 +140,23 @@ export default function ProductsPage() {
       rating: product.rating || 0,
       reviews: product.reviews || 0,
       isFeatured: product.isFeatured || false,
-      categoryId: product.categoryId,
+      categoryIds: product.categories.map((c) => c.id),
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCancel = () => {
     setEditingId(null);
-    setForm({
-      ...EMPTY_FORM,
-      categoryId: categories.length > 0 ? categories[0].id : 0,
-    });
+    setForm({ ...EMPTY_FORM });
   };
 
   const handleSubmit = async () => {
-    if (!form.english_name || !form.categoryId) {
-      toast.error("Please fill in English name and select a category");
+    if (!form.english_name) {
+      toast.error("Please fill in the English name");
+      return;
+    }
+    if (form.categoryIds.length === 0) {
+      toast.error("Please select at least one category");
       return;
     }
 
@@ -186,6 +191,19 @@ export default function ProductsPage() {
       ...prev,
       images: (prev.images || []).filter((_, i) => i !== index),
     }));
+  };
+
+  // Toggle a category on/off in the multi-select list
+  const toggleCategory = (catId: number) => {
+    setForm((prev) => {
+      const already = prev.categoryIds.includes(catId);
+      return {
+        ...prev,
+        categoryIds: already
+          ? prev.categoryIds.filter((id) => id !== catId)
+          : [...prev.categoryIds, catId],
+      };
+    });
   };
 
   const filteredProducts = products.filter(
@@ -357,6 +375,7 @@ export default function ProductsPage() {
                 </div>
               )}
             </div>
+
             {/* SKU */}
             <div className="space-y-2">
               <Label>SKU</Label>
@@ -415,27 +434,88 @@ export default function ProductsPage() {
                 />
               </div>
             </div>
-            {/* Category */}
+
+            {/* ── Categories (Multi-select) ── */}
             <div className="space-y-2">
-              <Label>Category *</Label>
-              <Select
-                value={form.categoryId.toString()}
-                onValueChange={(val) =>
-                  setForm({ ...form, categoryId: parseInt(val) })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                      {cat.english_name} / {cat.arabic_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="flex items-center gap-1.5">
+                <Tags className="w-3.5 h-3.5" />
+                Categories *
+                <span className="text-xs text-muted-foreground font-normal">
+                  (اختر أكتر من تخصص)
+                </span>
+              </Label>
+
+              {/* Selected badges */}
+              {form.categoryIds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 p-2 bg-muted/30 rounded-md border">
+                  {form.categoryIds.map((id) => {
+                    const cat = categories.find((c) => c.id === id);
+                    if (!cat) return null;
+                    return (
+                      <Badge
+                        key={id}
+                        variant="secondary"
+                        className="flex items-center gap-1 text-xs pr-1"
+                      >
+                        {cat.english_name}
+                        <button
+                          type="button"
+                          onClick={() => toggleCategory(id)}
+                          className="ml-1 hover:text-destructive transition-colors"
+                          aria-label={`Remove ${cat.english_name}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Checkbox list */}
+              <div className="border rounded-md divide-y max-h-48 overflow-y-auto">
+                {categories.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3">
+                    No categories found. Create one first.
+                  </p>
+                ) : (
+                  categories.map((cat) => {
+                    const isChecked = form.categoryIds.includes(cat.id);
+                    return (
+                      <label
+                        key={cat.id}
+                        className="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/40 transition-colors"
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={() => toggleCategory(cat.id)}
+                          id={`cat-${cat.id}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium leading-tight">
+                            {cat.english_name}
+                          </p>
+                          {cat.arabic_name && (
+                            <p
+                              className="text-xs text-muted-foreground leading-tight"
+                              dir="rtl"
+                            >
+                              {cat.arabic_name}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+              {form.categoryIds.length === 0 && (
+                <p className="text-xs text-destructive">
+                  Please select at least one category
+                </p>
+              )}
             </div>
+
             {/* Main Image */}
             <div className="space-y-2">
               <Label>Main Image</Label>
@@ -616,9 +696,17 @@ export default function ProductsPage() {
                         ${product.price?.toFixed(2)}
                       </span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground uppercase">
-                      {product.category.english_name}
-                    </p>
+                    {/* Show all categories as badges */}
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      {product.categories.map((cat) => (
+                        <span
+                          key={cat.id}
+                          className="text-[9px] uppercase tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium"
+                        >
+                          {cat.english_name}
+                        </span>
+                      ))}
+                    </div>
                     <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                       {product.sku && <span>SKU: {product.sku}</span>}
                       <span>Stock: {product.stock ?? 0}</span>

@@ -10,8 +10,12 @@ import type {
   ProductsPage,
 } from "@/generated/prisma/client";
 
+type ProductWithCategories = Omit<Product, "categoryId"> & {
+  categories: Category[];
+};
+
 interface ProductsClientPageProps {
-  initialProducts: (Product & { category: Category })[];
+  initialProducts: ProductWithCategories[];
   pageDetails: ProductsPage | null;
 }
 
@@ -66,7 +70,7 @@ export function ProductsClientPage({
     name: { en: p.english_name, ar: p.arabic_name || p.english_name },
     price: p.price || 0,
     image: p.image || "/placeholder-product.png",
-    category: p.category.english_name,
+    category: p.categories.map((c) => c.english_name).join(", "),
     description: {
       en: p.english_description || "",
       ar: p.arabic_description || "",

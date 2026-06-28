@@ -20,8 +20,12 @@ import { Filter } from "lucide-react";
 import type { Product, Category, StorePage } from "@/generated/prisma/client";
 import type { Currency } from "@/types";
 
+type ProductWithCategories = Omit<Product, "categoryId"> & {
+  categories: Category[];
+};
+
 interface StoreClientPageProps {
-  initialProducts: (Product & { category: Category })[];
+  initialProducts: ProductWithCategories[];
   categories: Category[];
   pageDetails: StorePage | null;
 }
@@ -91,8 +95,8 @@ export function StoreClientPage({
 
     // Filter by Category
     if (selectedCategory !== "all") {
-      result = result.filter(
-        (p) => p.categoryId.toString() === selectedCategory,
+      result = result.filter((p) =>
+        p.categories.some((c) => c.id.toString() === selectedCategory),
       );
     }
 
@@ -151,7 +155,7 @@ export function StoreClientPage({
     discount: p.discount || 0,
     image: p.image || "/placeholder-product.png",
     images: p.images || [],
-    category: p.category.english_name,
+    category: p.categories.map((c) => c.english_name).join(", "),
     description: {
       en: p.english_description || "",
       ar: p.arabic_description || "",

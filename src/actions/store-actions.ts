@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/db";
 import type {
-  Product,
   StorePage,
   ProductsPage,
 } from "@/generated/prisma/client";
@@ -146,13 +145,13 @@ export type ProductInput = {
   rating?: number | null;
   reviews?: number | null;
   isFeatured?: boolean;
-  categoryId: number;
+  categoryIds: number[]; // ← many-to-many: list of category IDs
 };
 
 export const getProducts = async () => {
   try {
     const products = await prisma.product.findMany({
-      include: { category: true },
+      include: { categories: true },
       orderBy: { createdAt: "desc" },
     });
     return { success: true, data: products };
@@ -164,9 +163,15 @@ export const getProducts = async () => {
 
 export const createProduct = async (payload: ProductInput) => {
   try {
+    const { categoryIds, ...rest } = payload;
     const product = await prisma.product.create({
-      data: payload,
-      include: { category: true },
+      data: {
+        ...rest,
+        categories: {
+          connect: categoryIds.map((id) => ({ id })),
+        },
+      },
+      include: { categories: true },
     });
     revalidate();
     return { success: true, data: product };
@@ -181,10 +186,18 @@ export const updateProduct = async (
   payload: Partial<ProductInput>,
 ) => {
   try {
+    const { categoryIds, ...rest } = payload;
     const product = await prisma.product.update({
       where: { id },
-      data: payload,
-      include: { category: true },
+      data: {
+        ...rest,
+        ...(categoryIds !== undefined && {
+          categories: {
+            set: categoryIds.map((cid) => ({ id: cid })),
+          },
+        }),
+      },
+      include: { categories: true },
     });
     revalidate();
     return { success: true, data: product };
@@ -209,7 +222,7 @@ export const getProductById = async (id: number) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { category: true },
+      include: { categories: true },
     });
     return { success: true, data: product };
   } catch (error) {
@@ -222,7 +235,7 @@ export const getFeaturedProducts = async () => {
   try {
     const products = await prisma.product.findMany({
       where: { isFeatured: true },
-      include: { category: true },
+      include: { categories: true },
       orderBy: { createdAt: "desc" },
     });
     return { success: true, data: products };

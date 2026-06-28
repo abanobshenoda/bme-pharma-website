@@ -44,40 +44,39 @@ model Category {
   image        String
   arabic_name  String?
   english_name String?
-  products     Product[]
+  products     Product[] @relation("ProductCategories")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
 
 model Product {
-  id                  Int      @id @default(autoincrement())
+  id                  Int        @id @default(autoincrement())
   english_name        String
   arabic_name         String?
   price               Float?
-  currency            String   @default("USD")
+  currency            String     @default("USD")
   
   // Discount fields
-  discountType        String   @default("PERCENTAGE") // PERCENTAGE | BUY_X_GET_Y
-  discount            Float?   // Used when discountType = PERCENTAGE (0-100)
-  buyXQuantity        Int?     // Used when discountType = BUY_X_GET_Y — buy X items...
-  getYQuantity        Int?     // ...get Y items free
+  discountType        String     @default("PERCENTAGE") // PERCENTAGE | BUY_X_GET_Y
+  discount            Float?     // Used when discountType = PERCENTAGE (0-100)
+  buyXQuantity        Int?       // Used when discountType = BUY_X_GET_Y — buy X items...
+  getYQuantity        Int?       // ...get Y items free
   
   image               String?
   images              String[]
   arabic_description  String?
   english_description String?
   sku                 String?
-  stock               Int?     @default(0)
-  rating              Float?   @default(0)
-  reviews             Int?     @default(0)
-  isFeatured          Boolean  @default(false)
-  categoryId          Int
-  category            Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  stock               Int?       @default(0)
+  rating              Float?     @default(0)
+  reviews             Int?       @default(0)
+  isFeatured          Boolean    @default(false)
+  categories          Category[] @relation("ProductCategories")
   
   orderItems          OrderItem[]
   
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
 }
 
 model CategorySection {
