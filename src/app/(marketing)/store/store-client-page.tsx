@@ -235,7 +235,7 @@ export function StoreClientPage({
                   </Button>
                 </SheetTrigger>
                 <SheetContent side={language === "ar" ? "right" : "left"}>
-                  <div className="py-4">
+                  <div className="py-6 px-4">
                     <StoreFilters
                       selectedCategory={selectedCategory}
                       setSelectedCategory={handleCategoryChange}
