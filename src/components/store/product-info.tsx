@@ -119,9 +119,10 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
         <h3 className="text-base font-bold italic text-foreground mb-1">
           {language === "ar" ? "الوصف" : "Description"}
         </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {getDescription()}
-        </p>
+        <div
+          className="text-sm text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-bold [&_a]:text-primary [&_a]:underline"
+          dangerouslySetInnerHTML={{ __html: getDescription() }}
+        />
       </div>
 
       {/* Quantity */}

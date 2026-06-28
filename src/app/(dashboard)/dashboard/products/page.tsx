@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Plus,
   Trash2,
@@ -39,6 +38,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import CloudinaryMediaPicker from "@/components/cloudinary-media-picker";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 
 // Product with many-to-many categories
 type ProductWithCategories = Omit<Product, "categoryId"> & {
@@ -565,25 +565,24 @@ export default function ProductsPage() {
             {/* Descriptions */}
             <div className="space-y-2">
               <Label>English Description</Label>
-              <Textarea
+              <RichTextEditor
                 value={form.english_description || ""}
-                onChange={(e) =>
-                  setForm({ ...form, english_description: e.target.value })
+                onChange={(val) =>
+                  setForm({ ...form, english_description: val })
                 }
-                rows={3}
                 placeholder="Product description..."
+                dir="ltr"
               />
             </div>
             <div className="space-y-2">
               <Label>Arabic Description</Label>
-              <Textarea
+              <RichTextEditor
                 value={form.arabic_description || ""}
-                onChange={(e) =>
-                  setForm({ ...form, arabic_description: e.target.value })
+                onChange={(val) =>
+                  setForm({ ...form, arabic_description: val })
                 }
-                dir="rtl"
-                rows={3}
                 placeholder="وصف المنتج..."
+                dir="rtl"
               />
             </div>
             {/* Featured Checkbox */}

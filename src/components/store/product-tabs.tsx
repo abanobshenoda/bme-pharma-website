@@ -21,7 +21,7 @@ export const ProductTabs = ({
   product,
   relatedProducts = [],
 }: ProductTabsProps) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>("related");
 
   const tabs: { key: TabKey; label: string }[] = [
@@ -65,11 +65,14 @@ export const ProductTabs = ({
       {/* Tab Content */}
       {activeTab === "info" && (
         <div className="text-sm text-muted-foreground leading-relaxed">
-          <p>
-            {language === "ar"
-              ? product.description?.ar || "لا يوجد وصف تفصيلي."
-              : product.description?.en || "No detailed description available."}
-          </p>
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-bold [&_a]:text-primary [&_a]:underline"
+            dangerouslySetInnerHTML={{
+              __html: language === "ar"
+                ? product.description?.ar || "لا يوجد وصف تفصيلي."
+                : product.description?.en || "No detailed description available."
+            }}
+          />
           {product.sku && (
             <p className="mt-3">
               <span className="font-semibold text-foreground">
