@@ -47,14 +47,16 @@ export const SingleProductClient = ({
             <BreadcrumbSeparator className="rtl:rotate-180" />
             <BreadcrumbItem>
               <BreadcrumbLink
-                href={`/store?category=${(product as any).categoryId || product.category}`}
+                href={`/store?category=${product.categoryId || product.category}`}
               >
                 {product.category}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="rtl:rotate-180" />
             <BreadcrumbItem>
-              <BreadcrumbPage>{getName()}</BreadcrumbPage>
+              <BreadcrumbPage>
+                {getName().length > 5 ? `${getName().slice(0, 5)}...` : getName()}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

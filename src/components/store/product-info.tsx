@@ -6,7 +6,8 @@ import { useCurrency } from "@/context/currency-context";
 import { useStore } from "@/context/store-context";
 import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Heart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Minus, Plus, Heart, Gift } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProductInfoProps {
@@ -95,11 +96,21 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
         </span>
       </div>
 
-      {/* Product Title */}
-      <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">
-        {getName()}
-        {discount > 0 &&
-          ` - ${discount}% ${language === "ar" ? "خصم" : "Discount"}`}
+      <h1 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight flex items-center gap-2 flex-wrap select-none">
+        <span>{getName()}</span>
+        {product.discountType === "PERCENTAGE" && discount > 0 && (
+          <Badge className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-2.5 py-0.5 rounded-full text-xs border-none shadow-sm">
+            {language === "ar" ? `خصم ${discount}%` : `-${discount}%`}
+          </Badge>
+        )}
+        {product.discountType === "BUY_X_GET_Y" && product.buyXQuantity && product.getYQuantity && (
+          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-0.5 rounded-full text-xs border-none shadow-sm flex items-center gap-1">
+            <Gift className="w-3 h-3" />
+            {language === "ar"
+              ? `عرض ${product.buyXQuantity} + ${product.getYQuantity} مجاناً`
+              : `Buy ${product.buyXQuantity} Get ${product.getYQuantity} Free`}
+          </Badge>
+        )}
       </h1>
 
       {/* Prices */}
@@ -119,10 +130,12 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
         <h3 className="text-base font-bold italic text-foreground mb-1">
           {language === "ar" ? "الوصف" : "Description"}
         </h3>
-        <div
-          className="text-sm text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-bold [&_a]:text-primary [&_a]:underline"
-          dangerouslySetInnerHTML={{ __html: getDescription() }}
-        />
+        <div className="max-h-[140px] overflow-y-auto pr-2 pl-1 scrollbar-thin scrollbar-thumb-muted-foreground/20">
+          <div
+            className="text-sm text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-bold [&_a]:text-primary [&_a]:underline"
+            dangerouslySetInnerHTML={{ __html: getDescription() }}
+          />
+        </div>
       </div>
 
       {/* Quantity */}

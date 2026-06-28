@@ -40,10 +40,25 @@ export function StoreClientPage({
   const router = useRouter();
   const pathname = usePathname();
 
+  // Resolve category name/ID from URL parameter
+  const resolvedCategory = useMemo(() => {
+    const param = searchParams.get("category") || "all";
+    if (param === "all") return "all";
+
+    // If it's a numeric ID, return it directly
+    if (/^\d+$/.test(param)) {
+      return param;
+    }
+
+    // Find category by name (case-insensitive)
+    const matchedCat = categories.find(
+      (c) => c.english_name && c.english_name.toLowerCase() === param.toLowerCase()
+    );
+    return matchedCat ? matchedCat.id.toString() : "all";
+  }, [searchParams, categories]);
+
   // State
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || "all",
-  );
+  const [selectedCategory, setSelectedCategory] = useState(resolvedCategory);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [sortOption, setSortOption] = useState("featured");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
@@ -74,20 +89,21 @@ export function StoreClientPage({
     if (category === "all") {
       params.delete("category");
     } else {
-      params.set("category", category);
+      // Find category name to keep the URL human-readable
+      const cat = categories.find((c) => c.id.toString() === category);
+      if (cat && cat.english_name) {
+        params.set("category", cat.english_name);
+      } else {
+        params.set("category", category);
+      }
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   // Sync URL to state
   useEffect(() => {
-    const categoryParam = searchParams.get("category");
-    if (categoryParam && categoryParam !== selectedCategory) {
-      setSelectedCategory(categoryParam);
-    } else if (!categoryParam && selectedCategory !== "all") {
-      setSelectedCategory("all");
-    }
-  }, [searchParams, selectedCategory]);
+    setSelectedCategory(resolvedCategory);
+  }, [resolvedCategory]);
 
   // Filter & Sort Logic
   const filteredProducts = useMemo(() => {

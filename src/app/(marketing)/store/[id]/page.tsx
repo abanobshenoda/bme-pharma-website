@@ -62,6 +62,10 @@ export default async function SingleProductPage({
       (product as any).categories?.[0]?.english_name ||
       (product as any).category?.english_name ||
       "",
+    categoryId:
+      (product as any).categories?.[0]?.id.toString() ||
+      (product as any).categoryId?.toString() ||
+      "",
     description: {
       en: product.english_description || "",
       ar: product.arabic_description || "",
@@ -81,6 +85,8 @@ export default async function SingleProductPage({
     image: p.image || "/placeholder-product.png",
     category:
       p.categories?.[0]?.english_name || p.category?.english_name || "",
+    categoryId:
+      p.categories?.[0]?.id.toString() || p.categoryId?.toString() || "",
     stock: p.stock ?? 0,
     rating: p.rating ?? 0,
     reviews: p.reviews ?? 0,

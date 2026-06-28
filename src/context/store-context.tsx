@@ -123,7 +123,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return wishlist.some((p) => p.id === productId);
   };
 
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartCount = cart.reduce((total, item) => {
+    const freeQty =
+      item.discountType === "BUY_X_GET_Y" && item.buyXQuantity && item.getYQuantity
+        ? Math.floor(item.quantity / item.buyXQuantity) * item.getYQuantity
+        : 0;
+    return total + item.quantity + freeQty;
+  }, 0);
   const wishlistCount = wishlist.length;
   const cartTotal = cart.reduce((total, item) => {
     const basePrice = item.price || 0;
@@ -135,12 +141,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       effectivePrice = basePrice - basePrice * (pct / 100);
       return total + effectivePrice * item.quantity;
     } else if (discountType === "BUY_X_GET_Y") {
-      const buyX = item.buyXQuantity || 1;
-      const getY = item.getYQuantity || 1;
-      // How many free items the customer earns: floor(quantity / buyX) * getY
-      const freeItems = Math.floor(item.quantity / buyX) * getY;
-      const paidItems = Math.max(item.quantity - freeItems, 0);
-      return total + basePrice * paidItems;
+      // For BUY_X_GET_Y, the customer pays for all quantity they put in the cart,
+      // and gets additional free items on top.
+      return total + basePrice * item.quantity;
     }
 
     return total + basePrice * item.quantity;

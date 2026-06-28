@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, Heart, ShoppingCart, Loader2 } from "lucide-react";
+import { Eye, Heart, ShoppingCart, Loader2, Gift } from "lucide-react";
 import { toast } from "sonner";
-import { Product, Currency } from "@/types";
+import { Product } from "@/types";
 import { useCurrency } from "@/context/currency-context";
 import { useLanguage } from "@/context/language-context";
 import { useStore } from "@/context/store-context";
@@ -16,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -99,6 +98,21 @@ export function ProductCard({ product }: ProductCardProps) {
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
+
+        {/* Floating Badges */}
+        {product.discountType === "PERCENTAGE" && product.discount && product.discount > 0 && (
+          <Badge className="absolute top-3 left-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-2.5 py-1 rounded-full z-10 shadow-sm border-none select-none">
+            {language === "ar" ? `خصم ${product.discount}%` : `-${product.discount}%`}
+          </Badge>
+        )}
+        {product.discountType === "BUY_X_GET_Y" && product.buyXQuantity && product.getYQuantity && (
+          <Badge className="absolute top-3 left-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-1 rounded-full z-10 shadow-sm border-none flex items-center gap-1 select-none">
+            <Gift className="w-3 h-3" />
+            {language === "ar"
+              ? `عرض ${product.buyXQuantity} + ${product.getYQuantity} مجاناً`
+              : `Buy ${product.buyXQuantity} Get ${product.getYQuantity} Free`}
+          </Badge>
+        )}
 
         {/* Overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

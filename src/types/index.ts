@@ -24,6 +24,7 @@ export interface Product {
   image: string; // Main image
   images?: string[]; // Gallery images
   category: string;
+  categoryId?: string;
   description?: {
     en: string;
     ar: string;

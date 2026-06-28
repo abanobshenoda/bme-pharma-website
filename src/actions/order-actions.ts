@@ -57,13 +57,13 @@ export async function createOrder(data: OrderInput) {
       const price = product.price || 0;
       const discountType = product.discountType || "PERCENTAGE";
 
-      let paidQuantity = item.quantity;
+      const paidQuantity = item.quantity;
+      let freeItems = 0;
 
       if (discountType === "BUY_X_GET_Y") {
         const buyX = product.buyXQuantity || 1;
         const getY = product.getYQuantity || 1;
-        const freeItems = Math.floor(item.quantity / buyX) * getY;
-        paidQuantity = Math.max(item.quantity - freeItems, 0);
+        freeItems = Math.floor(item.quantity / buyX) * getY;
       }
 
       const discount = discountType === "PERCENTAGE" ? (product.discount || 0) : 0;
@@ -81,12 +81,12 @@ export async function createOrder(data: OrderInput) {
 
       const totalPrice = finalUnitPrice * paidQuantity;
       subtotal += totalPrice;
-      totalCartItemCount += item.quantity;
+      totalCartItemCount += item.quantity + freeItems;
 
       return {
         productId: product.id,
         productName: product.english_name || product.arabic_name || "Unknown",
-        quantity: item.quantity,
+        quantity: item.quantity + freeItems,
         unitPrice: finalUnitPrice,
         totalPrice: totalPrice,
       };

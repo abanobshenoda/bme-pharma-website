@@ -43,7 +43,7 @@ function computePaidItems(
 ): { paidQty: number; freeQty: number } {
   if (discountType === "BUY_X_GET_Y" && buyX && getY) {
     const freeQty = Math.floor(quantity / buyX) * getY;
-    const paidQty = Math.max(quantity - freeQty, 0);
+    const paidQty = quantity;
     return { paidQty, freeQty };
   }
   return { paidQty: quantity, freeQty: 0 };
@@ -51,8 +51,8 @@ function computePaidItems(
 
 export function CheckoutClient() {
   const router = useRouter();
-  const { cart, cartTotal, setCart } = useStore();
-  const { formatPrice, currency } = useCurrency();
+  const { cart, setCart } = useStore();
+  const { formatPrice, currency, exchangeRate } = useCurrency();
   const { language } = useLanguage();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -73,10 +73,41 @@ export function CheckoutClient() {
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "MANUAL">("COD");
   const [receiptImage, setReceiptImage] = useState<string>("");
 
-  const subtotal = cartTotal;
+  const getConvertedPrice = (price: number, baseCurrency: "USD" | "EGP" = "USD") => {
+    if (currency === baseCurrency) return price;
+    if (currency === "EGP" && baseCurrency === "USD") return price * exchangeRate;
+    if (currency === "USD" && baseCurrency === "EGP") return price / exchangeRate;
+    return price;
+  };
 
-  // Total cart item count
-  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => {
+    const price = item.price || 0;
+    const discountType = item.discountType || "PERCENTAGE";
+    const itemCurrency = (item.currency as "USD" | "EGP") || "USD";
+
+    let effectiveLineTotal = 0;
+
+    if (discountType === "PERCENTAGE") {
+      const pct = item.discount || 0;
+      const discountedPrice = price - (price * pct) / 100;
+      effectiveLineTotal = discountedPrice * item.quantity;
+    } else if (discountType === "BUY_X_GET_Y") {
+      effectiveLineTotal = price * item.quantity;
+    } else {
+      effectiveLineTotal = price * item.quantity;
+    }
+
+    return sum + getConvertedPrice(effectiveLineTotal, itemCurrency);
+  }, 0);
+
+  // Total cart item count including free items
+  const cartItemCount = cart.reduce((sum, item) => {
+    const freeQty =
+      item.discountType === "BUY_X_GET_Y" && item.buyXQuantity && item.getYQuantity
+        ? Math.floor(item.quantity / item.buyXQuantity) * item.getYQuantity
+        : 0;
+    return sum + item.quantity + freeQty;
+  }, 0);
 
   // Fetch shipping fee dynamically based on cart state
   useEffect(() => {
@@ -551,7 +582,7 @@ export function CheckoutClient() {
                       {language === "ar" ? "المجموع الفرعي" : "Subtotal"}
                     </span>
                     <span className="font-semibold">
-                      {formatPrice(subtotal)}
+                      {formatPrice(subtotal, currency)}
                     </span>
                   </div>
 
@@ -578,7 +609,7 @@ export function CheckoutClient() {
                           {language === "ar" ? "مجاناً" : "Free"}
                         </span>
                       ) : (
-                        formatPrice(shippingFee ?? 0)
+                        formatPrice(shippingFee ?? 0, currency)
                       )}
                     </span>
                   </div>
@@ -589,8 +620,8 @@ export function CheckoutClient() {
                       <Truck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                       <span>
                         {language === "ar"
-                          ? `إجمالي القطع: ${cartItemCount} قطعة — مصاريف الشحن المطبقة: ${formatPrice(shippingFee ?? 0)}`
-                          : `${cartItemCount} piece${cartItemCount !== 1 ? "s" : ""} in cart — Shipping: ${formatPrice(shippingFee ?? 0)}`}
+                          ? `إجمالي القطع: ${cartItemCount} قطعة — مصاريف الشحن المطبقة: ${formatPrice(shippingFee ?? 0, currency)}`
+                          : `${cartItemCount} piece${cartItemCount !== 1 ? "s" : ""} in cart — Shipping: ${formatPrice(shippingFee ?? 0, currency)}`}
                       </span>
                     </div>
                   )}
@@ -603,7 +634,7 @@ export function CheckoutClient() {
                       {isLoadingShipping ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        formatPrice(total)
+                        formatPrice(total, currency)
                       )}
                     </span>
                   </div>

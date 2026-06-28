@@ -109,6 +109,16 @@ export function CartSheet() {
                       <Plus className="w-3 h-3" />
                     </Button>
                   </div>
+                  {item.discountType === "BUY_X_GET_Y" && item.buyXQuantity && item.getYQuantity && (
+                    (() => {
+                      const freeQty = Math.floor(item.quantity / item.buyXQuantity) * item.getYQuantity;
+                      return freeQty > 0 ? (
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100/50">
+                          + {freeQty} {language === "ar" ? "مجاناً" : "free"}
+                        </span>
+                      ) : null;
+                    })()
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
