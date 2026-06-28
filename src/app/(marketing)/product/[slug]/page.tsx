@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getProducts } from "@/actions/store-actions";
 import { SingleProductClient } from "@/app/(marketing)/store/[id]/single-product-client";
 import { slugify } from "@/lib/utils";
@@ -28,14 +28,27 @@ export default async function SingleProductSlugPage({
 
   const product = allProducts.find(
     (p) => slugify(p.english_name) === slug
-  );
+  ) || (slug === "molena-iron-formula-with-folic-acid-zinc-30-tablets"
+    ? allProducts.find(
+        (p) =>
+          p.english_name.toLowerCase().includes("molena") &&
+          p.english_name.toLowerCase().includes("iron")
+      )
+    : undefined);
 
   if (!product) {
     notFound();
   }
 
+  // If the slug accessed doesn't match the current product's slug, redirect to the correct one
+  if (slugify(product.english_name) !== slug) {
+    permanentRedirect(`/product/${slugify(product.english_name)}`);
+  }
+
   // Get the IDs of this product's categories
   const productCategoryIds: number[] = product.categories.map((c) => c.id);
+
+
 
   const relatedProducts = allProducts
     .filter(
