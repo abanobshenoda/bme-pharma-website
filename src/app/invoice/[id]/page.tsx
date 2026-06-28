@@ -3,6 +3,14 @@ import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import { PrintButton } from "./print-button";
 
+type InvoiceItem = {
+  id: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+};
+
 export default async function InvoicePage({
   params,
 }: {
@@ -39,9 +47,12 @@ export default async function InvoicePage({
             </p>
           </div>
           <div className="text-right">
-            <div className="w-12 h-12 bg-primary text-white rounded-lg flex items-center justify-center font-bold text-2xl ml-auto mb-2">
-              B
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="BME Pharma"
+              className="h-12 w-auto object-contain ml-auto mb-2"
+            />
             <h2 className="text-xl font-bold">BME Pharma</h2>
             <p className="text-sm text-gray-600">Cairo, Egypt</p>
             <p className="text-sm text-gray-600">contact@bmepharma.com</p>
@@ -97,24 +108,34 @@ export default async function InvoicePage({
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item: any) => (
-                <tr key={item.id} className="border-b border-gray-100">
-                  <td className="py-4 px-4">
-                    <p className="font-medium text-gray-900">
-                      {item.productName}
-                    </p>
-                  </td>
-                  <td className="py-4 px-4 text-center text-gray-600">
-                    {item.quantity}
-                  </td>
-                  <td className="py-4 px-4 text-right text-gray-600">
-                    {formatPrice(item.unitPrice, order.currency)}
-                  </td>
-                  <td className="py-4 px-4 text-right font-medium text-gray-900">
-                    {formatPrice(item.totalPrice, order.currency)}
-                  </td>
-                </tr>
-              ))}
+              {order.items.map((item: InvoiceItem) => {
+                const paidQty = item.unitPrice > 0 ? Math.round(item.totalPrice / item.unitPrice) : item.quantity;
+                const freeQty = item.quantity - paidQty;
+
+                return (
+                  <tr key={item.id} className="border-b border-gray-100">
+                    <td className="py-4 px-4">
+                      <p className="font-medium text-gray-900">
+                        {item.productName}
+                      </p>
+                      {freeQty > 0 && (
+                        <p className="text-xs font-semibold text-emerald-600 mt-0.5">
+                          * Includes {freeQty} Free Gift {freeQty > 1 ? 'pieces' : 'piece'} (Promo Offer)
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-600">
+                      {item.quantity}
+                    </td>
+                    <td className="py-4 px-4 text-right text-gray-600">
+                      {formatPrice(item.unitPrice, order.currency)}
+                    </td>
+                    <td className="py-4 px-4 text-right font-medium text-gray-900">
+                      {formatPrice(item.totalPrice, order.currency)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -124,7 +145,7 @@ export default async function InvoicePage({
           <div className="w-1/2 p-6 bg-gray-50 rounded-lg">
             <div className="flex justify-between mb-3 text-gray-600">
               <span>Subtotal</span>
-              <span>{formatPrice(order.subtotal, order.currency)}</span>
+              <span>{formatPrice(order.subtotal || (order.total - order.shippingFee), order.currency)}</span>
             </div>
             <div className="flex justify-between mb-3 text-gray-600">
               <span>Shipping</span>
