@@ -40,6 +40,8 @@ export const createCategory = async (data: CategoryInput) => {
       },
     });
     revalidatePath("/dashboard/category");
+    revalidatePath("/store");
+    revalidatePath("/products");
     revalidatePath("/");
     return { success: true, data: newCategory };
   } catch (error) {
@@ -62,6 +64,8 @@ export const updateCategory = async (
       },
     });
     revalidatePath("/dashboard/category");
+    revalidatePath("/store");
+    revalidatePath("/products");
     revalidatePath("/");
     return { success: true, data: updatedCategory };
   } catch (_error) {
@@ -75,6 +79,8 @@ export const deleteCategory = async (id: number) => {
       where: { id },
     });
     revalidatePath("/dashboard/category");
+    revalidatePath("/store");
+    revalidatePath("/products");
     revalidatePath("/");
     return { success: true };
   } catch (_error) {
