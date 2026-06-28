@@ -45,7 +45,7 @@ export default function StoreContentDashboard() {
     english_description: "",
   });
   const [products, setProducts] = useState<
-    (Product & { category: Category })[]
+    (Omit<Product, "categoryId"> & { categories: Category[] })[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [togglingIds, setTogglingIds] = useState<Set<number>>(new Set());
@@ -89,7 +89,11 @@ export default function StoreContentDashboard() {
     }
 
     if (prodRes.success && prodRes.data) {
-      setProducts(prodRes.data as (Product & { category: Category })[]);
+      setProducts(
+        prodRes.data as unknown as (Omit<Product, "categoryId"> & {
+          categories: Category[];
+        })[],
+      );
     }
 
     setIsLoading(false);
@@ -119,7 +123,7 @@ export default function StoreContentDashboard() {
   };
 
   const handleToggleFeatured = async (
-    product: Product & { category: Category },
+    product: Omit<Product, "categoryId"> & { categories: Category[] },
   ) => {
     setTogglingIds((prev) => new Set(prev).add(product.id));
     const res = await updateProduct(product.id, {
@@ -387,7 +391,7 @@ export default function StoreContentDashboard() {
                           {p.english_name}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {p.category.english_name}
+                        {p.categories?.[0]?.english_name ?? ""}
                         </p>
                       </div>
                       <div className="shrink-0">
