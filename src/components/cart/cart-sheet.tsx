@@ -42,14 +42,14 @@ export function CartSheet() {
 
   return (
     <>
-      <SheetHeader className="px-4 py-4">
+      <SheetHeader className="px-6 sm:px-8 py-4">
         <SheetTitle className="flex items-center gap-2">
           <ShoppingCart className="w-5 h-5" />
           {t("header.cart")} ({cart.length})
         </SheetTitle>
       </SheetHeader>
 
-      <ScrollArea className="flex-1 -mx-6 px-10 my-5">
+      <ScrollArea className="flex-1 px-6 sm:px-8 my-5">
         <div className="space-y-6">
           {cart.map((item) => (
             <div key={item.id} className="flex gap-4">
@@ -134,7 +134,7 @@ export function CartSheet() {
         </div>
       </ScrollArea>
 
-      <div className="space-y-4 pt-6 border-t px-2 mb-5">
+      <div className="space-y-4 pt-6 border-t px-6 sm:px-8 mb-5">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">

@@ -61,6 +61,8 @@ type Order = {
   customerEmail: string;
   city: string;
   shippingAddress: string;
+  subtotal: number;
+  shippingFee: number;
   total: number;
   currency: string;
   paymentMethod: string;
@@ -327,48 +329,49 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
                       </DropdownMenu>
 
                       {/* Order Details Modal */}
-                      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Order Details #{order.id}</DialogTitle>
-                          <DialogDescription suppressHydrationWarning>
-                            Placed on{" "}
-                            {format(new Date(order.createdAt), "PPP 'at' p")}
+                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                        <DialogHeader className="border-b pb-4">
+                          <DialogTitle className="text-xl md:text-2xl font-bold flex items-center justify-between">
+                            <span>Order Details #{order.id.slice(0, 8)}</span>
+                          </DialogTitle>
+                          <DialogDescription suppressHydrationWarning className="text-xs">
+                            Placed on {format(new Date(order.createdAt), "PPP 'at' p")}
                           </DialogDescription>
                         </DialogHeader>
 
                         <div className="grid md:grid-cols-2 gap-6 py-4">
                           <div className="space-y-4">
                             <div>
-                              <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-2">
+                              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
                                 Customer Details
                               </h4>
-                              <div className="bg-muted p-4 rounded-lg text-sm space-y-2">
-                                <p>
-                                  <span className="font-medium">Name:</span>{" "}
-                                  {order.customerName}
+                              <div className="bg-muted/40 border p-4 rounded-xl text-sm space-y-2.5">
+                                <p className="flex justify-between">
+                                  <span className="text-muted-foreground">Name:</span>{" "}
+                                  <span className="font-semibold text-foreground">{order.customerName}</span>
                                 </p>
-                                <p>
-                                  <span className="font-medium">Email:</span>{" "}
-                                  {order.customerEmail}
+                                <p className="flex justify-between">
+                                  <span className="text-muted-foreground">Email:</span>{" "}
+                                  <span className="font-medium text-foreground">{order.customerEmail}</span>
                                 </p>
-                                <p>
-                                  <span className="font-medium">Phone:</span>{" "}
-                                  {order.customerPhone}
+                                <p className="flex justify-between">
+                                  <span className="text-muted-foreground">Phone (WhatsApp):</span>{" "}
+                                  <span className="font-mono font-medium text-foreground">{order.customerPhone}</span>
                                 </p>
-                                <p>
-                                  <span className="font-medium">Address:</span>{" "}
-                                  {order.shippingAddress}, {order.city}
+                                <p className="flex flex-col pt-1 border-t">
+                                  <span className="text-muted-foreground mb-1">Address:</span>{" "}
+                                  <span className="font-medium text-foreground">{order.shippingAddress}, {order.city}</span>
                                 </p>
                               </div>
                             </div>
 
                             <div>
-                              <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-2">
+                              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
                                 Order Notes
                               </h4>
-                              <div className="bg-muted p-4 rounded-lg text-sm">
+                              <div className="bg-muted/40 border p-4 rounded-xl text-sm min-h-[80px]">
                                 {order.notes ? (
-                                  <p>{order.notes}</p>
+                                  <p className="text-foreground leading-relaxed">{order.notes}</p>
                                 ) : (
                                   <p className="text-muted-foreground italic">
                                     No additional notes provided.
@@ -380,18 +383,18 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
 
                           <div className="space-y-4">
                             <div>
-                              <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-2">
+                              <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
                                 Payment Details
                               </h4>
-                              <div className="bg-muted p-4 rounded-lg text-sm space-y-3">
+                              <div className="bg-muted/40 border p-4 rounded-xl text-sm space-y-3">
                                 <div className="flex justify-between items-center pb-2 border-b">
-                                  <span>Method:</span>
-                                  <Badge variant="outline">
-                                    {order.paymentMethod}
+                                  <span className="text-muted-foreground">Method:</span>
+                                  <Badge variant="outline" className="font-bold">
+                                    {order.paymentMethod === "COD" ? "Cash on Delivery" : "Bank/E-Wallet"}
                                   </Badge>
                                 </div>
                                 <div className="flex justify-between items-center pb-2 border-b">
-                                  <span>Status:</span>
+                                  <span className="text-muted-foreground">Status:</span>
                                   {getPaymentStatusBadge(
                                     order.paymentStatus,
                                     order.paymentMethod,
@@ -402,14 +405,14 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
                                 {order.paymentMethod === "MANUAL" &&
                                   order.receiptImage && (
                                     <div className="pt-2">
-                                      <span className="block mb-2 font-medium">
+                                      <span className="block mb-2 font-medium text-muted-foreground text-xs">
                                         Transfer Receipt:
                                       </span>
                                       <a
                                         href={order.receiptImage}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="block relative w-full h-32 rounded-md overflow-hidden border hover:opacity-90 transition-opacity"
+                                        className="block relative w-full h-36 rounded-xl overflow-hidden border hover:opacity-90 transition-all shadow-sm"
                                       >
                                         <Image
                                           src={order.receiptImage}
@@ -419,8 +422,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
                                         />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                                           <span className="text-white text-xs font-bold flex items-center gap-1">
-                                            <Eye className="w-3 h-3" /> Click to
-                                            enlarge
+                                            <Eye className="w-3 h-3" /> Click to enlarge
                                           </span>
                                         </div>
                                       </a>
@@ -433,50 +435,86 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
 
                         {/* Order Items */}
                         <div className="mt-4">
-                          <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">
+                          <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-3">
                             Order Items
                           </h4>
-                          <div className="border rounded-lg overflow-hidden">
+                          <div className="border rounded-xl overflow-hidden shadow-sm">
                             <Table>
                               <TableHeader className="bg-muted/50">
                                 <TableRow>
                                   <TableHead>Item</TableHead>
-                                  <TableHead className="text-center">
+                                  <TableHead className="text-center w-24">
                                     Qty
                                   </TableHead>
-                                  <TableHead className="text-right">
+                                  <TableHead className="text-right w-32">
                                     Price
                                   </TableHead>
-                                  <TableHead className="text-right">
+                                  <TableHead className="text-right w-32">
                                     Total
                                   </TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {order.items.map((item) => (
-                                  <TableRow key={item.id}>
-                                    <TableCell className="font-medium">
-                                      {item.productName}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                      {item.quantity}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {formatPrice(
-                                        item.unitPrice,
-                                        order.currency,
-                                      )}
-                                    </TableCell>
-                                    <TableCell className="text-right font-medium">
-                                      {formatPrice(
-                                        item.totalPrice,
-                                        order.currency,
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
+                                {order.items.map((item) => {
+                                  const paidQty = item.unitPrice > 0 ? Math.round(item.totalPrice / item.unitPrice) : item.quantity;
+                                  const freeQty = item.quantity - paidQty;
+
+                                  return (
+                                    <TableRow key={item.id}>
+                                      <TableCell className="font-medium text-sm">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                          <span>{item.productName}</span>
+                                          {freeQty > 0 && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400 w-fit">
+                                              + {freeQty} Free
+                                            </span>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-center font-semibold text-sm">
+                                        {item.quantity}
+                                      </TableCell>
+                                      <TableCell className="text-right text-sm text-muted-foreground">
+                                        {formatPrice(
+                                          item.unitPrice,
+                                          order.currency,
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="text-right font-bold text-sm text-foreground">
+                                        {formatPrice(
+                                          item.totalPrice,
+                                          order.currency,
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                               </TableBody>
                             </Table>
+                          </div>
+                        </div>
+
+                        {/* Order Summary Pricing Breakdown */}
+                        <div className="mt-6 flex justify-end">
+                          <div className="w-full sm:w-80 bg-muted/40 border rounded-xl p-4 space-y-3 text-sm shadow-sm">
+                            <div className="flex justify-between items-center text-muted-foreground">
+                              <span>Subtotal:</span>
+                              <span className="font-medium text-foreground">
+                                {formatPrice(order.subtotal || (order.total - order.shippingFee), order.currency)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-muted-foreground">
+                              <span>Shipping Fee:</span>
+                              <span className="font-medium text-foreground">
+                                {order.shippingFee > 0 
+                                  ? formatPrice(order.shippingFee, order.currency)
+                                  : "Free Shipping"}
+                              </span>
+                            </div>
+                            <div className="border-t pt-3 flex justify-between items-center text-base font-bold text-primary">
+                              <span>Total:</span>
+                              <span>{formatPrice(order.total, order.currency)}</span>
+                            </div>
                           </div>
                         </div>
                       </DialogContent>

@@ -7,7 +7,6 @@ import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
@@ -49,11 +48,15 @@ function computePaidItems(
   return { paidQty: quantity, freeQty: 0 };
 }
 
-export function CheckoutClient() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
   const router = useRouter();
   const { cart, setCart } = useStore();
   const { formatPrice, currency, exchangeRate } = useCurrency();
   const { language } = useLanguage();
+
+  const codEnabled = companyInfo?.codEnabled ?? true;
+  const manualEnabled = companyInfo?.manualEnabled ?? false;
 
   const [isLoading, setIsLoading] = useState(false);
   const [shippingFee, setShippingFee] = useState<number | null>(null);
@@ -70,7 +73,12 @@ export function CheckoutClient() {
     city: "",
     notes: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "MANUAL">("COD");
+  const [paymentMethod, setPaymentMethod] = useState<"COD" | "MANUAL">((() => {
+    const isCod = companyInfo?.codEnabled ?? true;
+    const isManual = companyInfo?.manualEnabled ?? false;
+    if (!isCod && isManual) return "MANUAL";
+    return "COD";
+  })());
   const [receiptImage, setReceiptImage] = useState<string>("");
 
   const getConvertedPrice = (price: number, baseCurrency: "USD" | "EGP" = "USD") => {
@@ -194,7 +202,7 @@ export function CheckoutClient() {
           : "Order placed successfully!",
       );
       clearCart();
-      router.push("/store");
+      router.push("/checkout/success");
     } else {
       toast.error(
         res.error || (language === "ar" ? "حدث خطأ" : "Something went wrong"),
@@ -264,16 +272,22 @@ export function CheckoutClient() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="customerPhone">
-                      {language === "ar" ? "رقم الهاتف" : "Phone Number"} *
+                      {language === "ar" ? "رقم الواتساب" : "WhatsApp Number"} *
                     </Label>
                     <Input
                       id="customerPhone"
                       name="customerPhone"
                       required
                       type="tel"
+                      placeholder={language === "ar" ? "مثال: 01000000000" : "e.g. 01000000000"}
                       value={formData.customerPhone}
                       onChange={handleInputChange}
                     />
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      {language === "ar"
+                        ? "سنقوم بالتواصل معك عبر هذا الرقم على الواتساب."
+                        : "We will contact you via WhatsApp on this number."}
+                    </p>
                   </div>
                 </div>
 
@@ -342,119 +356,163 @@ export function CheckoutClient() {
             </h2>
             <Card>
               <CardContent className="p-6">
-                <RadioGroup
-                  value={paymentMethod}
-                  onValueChange={(val: "COD" | "MANUAL") =>
-                    setPaymentMethod(val)
-                  }
-                  className="space-y-4"
-                >
-                  {/* COD Option */}
-                  <div
-                    className={`flex items-start space-x-3 rtl:space-x-reverse border p-4 rounded-xl cursor-pointer transition-colors ${
-                      paymentMethod === "COD"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => setPaymentMethod("COD")}
-                  >
-                    <RadioGroupItem value="COD" id="cod" className="mt-1" />
-                    <div className="flex-1">
-                      <Label
-                        htmlFor="cod"
-                        className="text-base font-bold cursor-pointer flex items-center gap-2"
-                      >
-                        <Banknote className="w-5 h-5 text-green-600" />
-                        {language === "ar"
-                          ? "الدفع عند الاستلام (COD)"
-                          : "Cash on Delivery (COD)"}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {language === "ar"
-                          ? "قم بلدفع نقداً لمندوب التوصيل عند استلام طلبك."
-                          : "Pay in cash to the delivery agent upon receiving your order."}
-                      </p>
+                <div className="space-y-4">
+                  {!codEnabled && !manualEnabled && (
+                    <div className="text-center p-4 border border-dashed rounded-xl bg-destructive/5 text-destructive font-medium">
+                      {language === "ar"
+                        ? "لم يتم تفعيل أي وسيلة دفع حالياً. يرجى الاتصال بنا لإتمام طلبك."
+                        : "No payment methods are currently active. Please contact us to complete your order."}
                     </div>
-                  </div>
+                  )}
 
-                  {/* Manual Transfer Option */}
-                  <div
-                    className={`flex items-start space-x-3 rtl:space-x-reverse border p-4 rounded-xl cursor-pointer transition-colors ${
-                      paymentMethod === "MANUAL"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => setPaymentMethod("MANUAL")}
-                  >
-                    <RadioGroupItem
-                      value="MANUAL"
-                      id="manual"
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <Label
-                        htmlFor="manual"
-                        className="text-base font-bold cursor-pointer flex items-center gap-2"
-                      >
-                        <Wallet className="w-5 h-5 text-primary" />
-                        {language === "ar"
-                          ? "تحويل بنكي / محفظة إلكترونية"
-                          : "Bank Transfer / E-Wallet"}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1 mb-3">
-                        {language === "ar"
-                          ? "حول المبلغ لأحد الأرقام الموضحة، ثم ارفع صورة إيصال التحويل لتأكيد الطلب."
-                          : "Transfer the amount to the provided details, then upload the receipt to confirm."}
-                      </p>
-
-                      {/* Manual Transfer Details (Only shows when selected) */}
-                      {paymentMethod === "MANUAL" && (
-                        <div className="bg-background/80 p-4 rounded-lg border mt-2 space-y-4 animate-in fade-in slide-in-from-top-2">
-                          <div className="text-sm space-y-2">
-                            <p className="font-semibold">
-                              {language === "ar"
-                                ? "أرقام التحويل المتاحة:"
-                                : "Available Transfer Numbers:"}
-                            </p>
-                            <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                              <li>
-                                InstaPay / Vodafone Cash:{" "}
-                                <span className="font-mono text-foreground font-medium">
-                                  01000000000
-                                </span>
-                              </li>
-                              <li>
-                                Bank Account Number (CIB):{" "}
-                                <span className="font-mono text-foreground font-medium">
-                                  100029384756
-                                </span>
-                              </li>
-                            </ul>
-                            <p className="text-xs text-amber-600 mt-2 bg-amber-50 p-2 rounded">
-                              {language === "ar"
-                                ? "تنبيه: لن يتم شحن الطلب إلا بعد التأكد من الحوالة ورفع الإيصال."
-                                : "Note: Order will not be shipped until the transfer is verified and receipt is uploaded."}
-                            </p>
-                          </div>
-
-                          <div className="space-y-2 pt-2 border-t">
-                            <Label>
-                              {language === "ar"
-                                ? "صورة إيصال التحويل"
-                                : "Transfer Receipt Image"}{" "}
-                              *
-                            </Label>
-                            <CloudinaryUploadWidget
-                              value={receiptImage}
-                              onUpload={(url) => setReceiptImage(url)}
-                              onRemove={() => setReceiptImage("")}
-                            />
-                          </div>
+                  {codEnabled && (
+                    <div
+                      className={`flex items-start space-x-3 rtl:space-x-reverse border p-4 rounded-xl cursor-pointer transition-colors ${
+                        paymentMethod === "COD"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() => setPaymentMethod("COD")}
+                    >
+                      <div className="mt-1 flex-shrink-0">
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === "COD" ? "border-primary" : "border-muted-foreground"}`}>
+                          {paymentMethod === "COD" && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
                         </div>
-                      )}
+                      </div>
+                      <div className="flex-1">
+                        <Label
+                          className="text-base font-bold cursor-pointer flex items-center gap-2"
+                        >
+                          <Banknote className="w-5 h-5 text-green-600" />
+                          {language === "ar"
+                            ? "الدفع عند الاستلام (COD)"
+                            : "Cash on Delivery (COD)"}
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {language === "ar"
+                            ? "قم بالدفع نقداً لمندوب التوصيل عند استلام طلبك."
+                            : "Pay in cash to the delivery agent upon receiving your order."}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </RadioGroup>
+                  )}
+
+                  {manualEnabled && (
+                    <div
+                      className={`flex items-start space-x-3 rtl:space-x-reverse border p-4 rounded-xl cursor-pointer transition-colors ${
+                        paymentMethod === "MANUAL"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                      onClick={() => setPaymentMethod("MANUAL")}
+                    >
+                      <div className="mt-1 flex-shrink-0">
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === "MANUAL" ? "border-primary" : "border-muted-foreground"}`}>
+                          {paymentMethod === "MANUAL" && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <Label
+                          className="text-base font-bold cursor-pointer flex items-center gap-2"
+                        >
+                          <Wallet className="w-5 h-5 text-primary" />
+                          {language === "ar"
+                            ? "تحويل بنكي / محفظة إلكترونية"
+                            : "Bank Transfer / E-Wallet"}
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1 mb-3">
+                          {language === "ar"
+                            ? "حول المبلغ لأحد الحسابات الموضحة، ثم ارفع صورة إيصال التحويل لتأكيد الطلب."
+                            : "Transfer the amount to the provided details, then upload the receipt to confirm."}
+                        </p>
+
+                        {/* Manual Transfer Details (Only shows when selected) */}
+                        {paymentMethod === "MANUAL" && (
+                          <div
+                            className="bg-background/80 p-4 rounded-lg border mt-2 space-y-4 animate-in fade-in slide-in-from-top-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="text-sm space-y-3">
+                              <p className="font-semibold">
+                                {language === "ar"
+                                  ? "تفاصيل التحويل المتاحة:"
+                                  : "Available Transfer Details:"}
+                              </p>
+                              <div className="space-y-2 text-muted-foreground">
+                                {companyInfo?.bankAccountNo && (
+                                  <div className="border-b pb-2 last:border-0 last:pb-0">
+                                    <span className="font-semibold text-foreground block text-xs uppercase">
+                                      {language === "ar" ? "الحساب البنكي:" : "Bank Account:"}
+                                    </span>
+                                    <div className="grid grid-cols-1 gap-1 mt-1 font-mono text-xs text-foreground">
+                                      {companyInfo?.bankName && (
+                                        <div>{language === "ar" ? "البنك:" : "Bank:"} <span className="font-sans font-medium">{companyInfo.bankName}</span></div>
+                                      )}
+                                      <div>{language === "ar" ? "رقم الحساب:" : "Account No:"} <span className="font-medium">{companyInfo.bankAccountNo}</span></div>
+                                      {companyInfo?.bankIban && (
+                                        <div>{language === "ar" ? "الآيبان (IBAN):" : "IBAN:"} <span className="font-medium">{companyInfo.bankIban}</span></div>
+                                      )}
+                                      {companyInfo?.bankSwift && (
+                                        <div>{language === "ar" ? "سويفت كود (SWIFT):" : "SWIFT:"} <span className="font-medium">{companyInfo.bankSwift}</span></div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {companyInfo?.instaPayId && (
+                                  <div className="border-b pb-2 last:border-0 last:pb-0">
+                                    <span className="font-semibold text-foreground block text-xs uppercase">
+                                      {language === "ar" ? "عنوان إنستا باي (InstaPay):" : "InstaPay Address:"}
+                                    </span>
+                                    <span className="font-mono text-sm text-foreground font-medium block mt-0.5">
+                                      {companyInfo.instaPayId}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {companyInfo?.mobileWalletNo && (
+                                  <div className="border-b pb-2 last:border-0 last:pb-0">
+                                    <span className="font-semibold text-foreground block text-xs uppercase">
+                                      {language === "ar" ? "محفظة إلكترونية (فودافون كاش / اتصالات / أورانج):" : "Mobile Wallet (Vodafone Cash / Orange / Etisalat):"}
+                                    </span>
+                                    <span className="font-mono text-sm text-foreground font-medium block mt-0.5">
+                                      {companyInfo.mobileWalletNo}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {!companyInfo?.bankAccountNo && !companyInfo?.instaPayId && !companyInfo?.mobileWalletNo && (
+                                  <div>
+                                    {language === "ar" ? "لا توجد تفاصيل دفع مدخلة حالياً." : "No payment details entered yet."}
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-xs text-amber-600 mt-2 bg-amber-50 dark:bg-amber-950/20 p-2 rounded">
+                                {language === "ar"
+                                  ? "تنبيه: لن يتم شحن الطلب إلا بعد التأكد من الحوالة ورفع الإيصال."
+                                  : "Note: Order will not be shipped until the transfer is verified and receipt is uploaded."}
+                              </p>
+                            </div>
+
+                            <div className="space-y-2 pt-2 border-t">
+                              <Label>
+                                {language === "ar"
+                                  ? "صورة إيصال التحويل"
+                                  : "Transfer Receipt Image"}{" "}
+                                *
+                              </Label>
+                              <CloudinaryUploadWidget
+                                value={receiptImage}
+                                onUpload={(url) => setReceiptImage(url)}
+                                onRemove={() => setReceiptImage("")}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </section>

@@ -203,6 +203,16 @@ model CompanyInfo {
   linkedin            String?
   youtube             String?
   
+  // Payment Configurations
+  codEnabled          Boolean  @default(true)
+  manualEnabled       Boolean  @default(false)
+  bankName            String?
+  bankAccountNo       String?
+  bankIban            String?
+  bankSwift           String?
+  instaPayId          String?
+  mobileWalletNo      String?
+  
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }

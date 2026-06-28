@@ -15,10 +15,33 @@ import {
   updateCompanyInfo,
 } from "@/actions/company-info-actions";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+
+interface CompanyInfoWithPayments {
+  id?: number;
+  email?: string | null;
+  phone?: string | null;
+  arabic_address?: string | null;
+  english_address?: string | null;
+  arabic_workingDays?: string | null;
+  english_workingDays?: string | null;
+  facebook?: string | null;
+  twitter?: string | null;
+  instagram?: string | null;
+  linkedin?: string | null;
+  youtube?: string | null;
+  codEnabled?: boolean;
+  manualEnabled?: boolean;
+  bankName?: string | null;
+  bankAccountNo?: string | null;
+  bankIban?: string | null;
+  bankSwift?: string | null;
+  instaPayId?: string | null;
+  mobileWalletNo?: string | null;
+}
 
 export default async function CompanyInfoPage() {
-  const { data: companyInfo } = await getCompanyInfo();
+  const { data: rawCompanyInfo } = await getCompanyInfo();
+  const companyInfo = rawCompanyInfo as CompanyInfoWithPayments | null;
 
   async function handleSubmit(formData: FormData) {
     "use server";
@@ -35,6 +58,14 @@ export default async function CompanyInfoPage() {
       instagram: formData.get("instagram") as string,
       linkedin: formData.get("linkedin") as string,
       youtube: formData.get("youtube") as string,
+      codEnabled: formData.get("codEnabled") === "on",
+      manualEnabled: formData.get("manualEnabled") === "on",
+      bankName: formData.get("bankName") as string,
+      bankAccountNo: formData.get("bankAccountNo") as string,
+      bankIban: formData.get("bankIban") as string,
+      bankSwift: formData.get("bankSwift") as string,
+      instaPayId: formData.get("instaPayId") as string,
+      mobileWalletNo: formData.get("mobileWalletNo") as string,
     };
 
     const result = await updateCompanyInfo(data);
@@ -196,6 +227,111 @@ export default async function CompanyInfoPage() {
                     defaultValue={companyInfo?.youtube || ""}
                     placeholder="https://youtube.com/..."
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Methods</CardTitle>
+              <CardDescription>
+                Configure the payment options available for customers during checkout.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="codEnabled"
+                    name="codEnabled"
+                    defaultChecked={companyInfo?.codEnabled ?? true}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="codEnabled" className="font-semibold cursor-pointer">
+                    Enable Cash on Delivery (COD)
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Allow customers to pay in cash when they receive their package.
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="manualEnabled"
+                    name="manualEnabled"
+                    defaultChecked={companyInfo?.manualEnabled ?? false}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="manualEnabled" className="font-semibold cursor-pointer">
+                    Enable Bank & E-Wallet Transfer
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground ml-6">
+                  Allow customers to pay via bank transfer or mobile wallets and upload a receipt.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 ml-6">
+                  <div className="grid gap-2">
+                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      name="bankName"
+                      defaultValue={companyInfo?.bankName || ""}
+                      placeholder="e.g. CIB, QNB"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="bankAccountNo">Bank Account Number</Label>
+                    <Input
+                      id="bankAccountNo"
+                      name="bankAccountNo"
+                      defaultValue={companyInfo?.bankAccountNo || ""}
+                      placeholder="Account Number"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="bankIban">IBAN</Label>
+                    <Input
+                      id="bankIban"
+                      name="bankIban"
+                      defaultValue={companyInfo?.bankIban || ""}
+                      placeholder="IBAN"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="bankSwift">SWIFT Code</Label>
+                    <Input
+                      id="bankSwift"
+                      name="bankSwift"
+                      defaultValue={companyInfo?.bankSwift || ""}
+                      placeholder="SWIFT Code"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="instaPayId">InstaPay ID</Label>
+                    <Input
+                      id="instaPayId"
+                      name="instaPayId"
+                      defaultValue={companyInfo?.instaPayId || ""}
+                      placeholder="username@instapay"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="mobileWalletNo">Mobile Wallet Number</Label>
+                    <Input
+                      id="mobileWalletNo"
+                      name="mobileWalletNo"
+                      defaultValue={companyInfo?.mobileWalletNo || ""}
+                      placeholder="e.g. Vodafone Cash Number"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
