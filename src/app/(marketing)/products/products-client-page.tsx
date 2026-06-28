@@ -44,7 +44,7 @@ export function ProductsClientPage({
       : "Explore our extensive product line of innovative medical solutions.";
 
   const filteredProducts = useMemo(() => {
-    let result = [...initialProducts];
+    const result = [...initialProducts];
 
     // Sort
     if (sortOption === "price-asc") {
@@ -69,12 +69,21 @@ export function ProductsClientPage({
     id: p.id.toString(),
     name: { en: p.english_name, ar: p.arabic_name || p.english_name },
     price: p.price || 0,
+    currency: p.currency as "USD" | "EGP",
+    discount: p.discount || 0,
+    discountType: p.discountType as "PERCENTAGE" | "BUY_X_GET_Y",
+    buyXQuantity: p.buyXQuantity ?? undefined,
+    getYQuantity: p.getYQuantity ?? undefined,
     image: p.image || "/placeholder-product.png",
     category: p.categories.map((c) => c.english_name).join(", "),
     description: {
       en: p.english_description || "",
       ar: p.arabic_description || "",
     },
+    sku: p.sku || undefined,
+    stock: p.stock ?? 0,
+    rating: p.rating ?? 0,
+    reviews: p.reviews ?? 0,
   }));
 
   return (
@@ -105,7 +114,7 @@ export function ProductsClientPage({
               </p>
             </div>
           ) : (
-            <ProductGrid products={mappedProducts as any} layout={layout} />
+            <ProductGrid products={mappedProducts as unknown as import("@/types").Product[]} layout={layout} />
           )}
         </div>
       </div>

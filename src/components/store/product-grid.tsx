@@ -6,10 +6,11 @@ import { Product, Currency } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart, Eye } from "lucide-react";
+import { Heart, ShoppingCart, Eye, Gift } from "lucide-react";
 import { useCurrency } from "@/context/currency-context";
 import { useStore } from "@/context/store-context"; // Assuming useStore exists as per previous context
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface ProductGridProps {
   products: Product[];
@@ -122,6 +123,20 @@ function ProductListItem({
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
+
+        {/* Floating Badges */}
+        {product.discountType === "PERCENTAGE" && product.discount && product.discount > 0 && (
+          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-red-600 text-white font-extrabold px-2.5 py-0.5 rounded-full z-10 shadow-md border-none select-none text-[10px] transform hover:scale-105 transition-transform duration-300">
+            {language === "ar" ? `خصم ${product.discount}%` : `-${product.discount}%`}
+          </Badge>
+        )}
+        {product.discountType === "BUY_X_GET_Y" && product.buyXQuantity && product.getYQuantity && (
+          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold px-2.5 py-0.5 rounded-full z-10 shadow-md border-none flex items-center gap-1 select-none text-[10px] uppercase tracking-wider transform hover:scale-105 transition-transform duration-300">
+            <Gift className="w-3 h-3" />
+            {language === "ar" ? "عرض" : "Offer"}
+          </Badge>
+        )}
+
         {/* Quick Actions Overlay (Mobile/Desktop consistent) */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
       </Link>
@@ -159,8 +174,8 @@ function ProductListItem({
 
         <p className="text-muted-foreground text-sm mt-2 line-clamp-2 flex-1">
           {/* Use description if available, else standard text */}
-          {(product as Product & { description?: Record<string, string> })
-            .description?.[language === "ar" ? "ar" : "en"] ||
+          {((product as Product & { description?: Record<string, string> })
+            .description?.[language === "ar" ? "ar" : "en"] || "").replace(/<[^>]*>/g, "") ||
             (language === "ar"
               ? "منتج عالي الجودة من بي إم إي فارما، مصمم لتلبية احتياجاتك الصحية بأعلى المعايير."
               : "High-quality product from BME Pharma, designed to meet your health needs with the highest standards.")}
@@ -178,7 +193,7 @@ function ProductListItem({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => toggleWishlist(product)}
+            onClick={handleWishlist}
             className={isWishlisted ? "text-red-500 hover:text-red-600" : ""}
           >
             <Heart

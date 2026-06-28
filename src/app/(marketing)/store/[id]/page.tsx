@@ -51,6 +51,9 @@ export default async function SingleProductPage({
     price: product.price || 0,
     currency: product.currency as any,
     discount: product.discount || 0,
+    discountType: product.discountType as "PERCENTAGE" | "BUY_X_GET_Y",
+    buyXQuantity: product.buyXQuantity ?? undefined,
+    getYQuantity: product.getYQuantity ?? undefined,
     image: product.image || "/placeholder-product.png",
     images:
       product.images.length > 0
@@ -82,6 +85,9 @@ export default async function SingleProductPage({
     price: p.price || 0,
     currency: p.currency,
     discount: p.discount || 0,
+    discountType: p.discountType as "PERCENTAGE" | "BUY_X_GET_Y",
+    buyXQuantity: p.buyXQuantity ?? undefined,
+    getYQuantity: p.getYQuantity ?? undefined,
     image: p.image || "/placeholder-product.png",
     category:
       p.categories?.[0]?.english_name || p.category?.english_name || "",

@@ -125,6 +125,47 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
         )}
       </div>
 
+      {/* Promotion Details */}
+      {product.discountType === "BUY_X_GET_Y" && product.buyXQuantity && product.getYQuantity && (
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-200/60 dark:border-emerald-800/40 flex items-start gap-3.5 my-1.5 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm shrink-0">
+            <Gift className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-extrabold text-emerald-800 dark:text-emerald-300 text-sm md:text-base">
+              {language === "ar" ? "عرض خاص متوفر!" : "Special Offer Available!"}
+            </h4>
+            <p className="text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
+              {language === "ar"
+                ? product.buyXQuantity === 1
+                  ? "اشتري علبة واحصل على هدية مجاناً!"
+                  : product.buyXQuantity === 2
+                    ? "اشتري علبتين واحصل على هدية مجاناً!"
+                    : `اشتري ${product.buyXQuantity} علب واحصل على ${product.getYQuantity} مجاناً!`
+                : `Buy ${product.buyXQuantity} box${product.buyXQuantity > 1 ? 'es' : ''} and get ${product.getYQuantity} free!`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {product.discountType === "PERCENTAGE" && discount > 0 && (
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-50/80 to-pink-50/50 dark:from-rose-950/20 dark:to-pink-950/10 border border-rose-200/60 dark:border-rose-800/40 flex items-start gap-3.5 my-1.5 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-center shadow-sm shrink-0 w-10 h-10 flex items-center justify-center">
+            <span className="text-base">%</span>
+          </div>
+          <div>
+            <h4 className="font-extrabold text-rose-800 dark:text-rose-300 text-sm md:text-base">
+              {language === "ar" ? "وفر أكثر اليوم!" : "Save More Today!"}
+            </h4>
+            <p className="text-xs md:text-sm font-semibold text-rose-600 dark:text-rose-400 mt-1">
+              {language === "ar"
+                ? `وفر ${discount}% من السعر الأصلي عند الشراء الآن!`
+                : `Get ${discount}% off the original price when you order now!`}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Description */}
       <div>
         <h3 className="text-base font-bold italic text-foreground mb-1">

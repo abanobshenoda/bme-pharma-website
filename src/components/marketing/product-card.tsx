@@ -101,16 +101,14 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Floating Badges */}
         {product.discountType === "PERCENTAGE" && product.discount && product.discount > 0 && (
-          <Badge className="absolute top-3 left-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold px-2.5 py-1 rounded-full z-10 shadow-sm border-none select-none">
+          <Badge className="absolute top-3 left-3 bg-gradient-to-r from-rose-500 to-red-600 text-white font-extrabold px-3 py-1 rounded-full z-10 shadow-md border-none select-none text-xs transform hover:scale-105 transition-transform duration-300">
             {language === "ar" ? `خصم ${product.discount}%` : `-${product.discount}%`}
           </Badge>
         )}
         {product.discountType === "BUY_X_GET_Y" && product.buyXQuantity && product.getYQuantity && (
-          <Badge className="absolute top-3 left-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-1 rounded-full z-10 shadow-sm border-none flex items-center gap-1 select-none">
-            <Gift className="w-3 h-3" />
-            {language === "ar"
-              ? `عرض ${product.buyXQuantity} + ${product.getYQuantity} مجاناً`
-              : `Buy ${product.buyXQuantity} Get ${product.getYQuantity} Free`}
+          <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-extrabold px-3 py-1 rounded-full z-10 shadow-md border-none flex items-center gap-1.5 select-none text-xs uppercase tracking-wider transform hover:scale-105 transition-transform duration-300">
+            <Gift className="w-3.5 h-3.5" />
+            {language === "ar" ? "عرض" : "Offer"}
           </Badge>
         )}
 
