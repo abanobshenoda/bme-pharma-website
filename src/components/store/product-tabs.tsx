@@ -8,7 +8,7 @@ import { Product } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 type TabKey = "info" | "return" | "related";
 
@@ -156,7 +156,7 @@ const RelatedProductCard = ({ product }: { product: Product }) => {
 
   return (
     <a
-      href={`/store/${product.id}`}
+      href={`/product/${slugify(product.name.en)}`}
       className="group relative flex flex-col rounded-xl overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-all"
     >
       {/* Image */}

@@ -24,6 +24,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { slugify } from "@/lib/utils";
+
 
 interface ProductCardProps {
   product: Product;
@@ -262,7 +264,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <Link
-          href={`/store/${product.id}`}
+          href={`/product/${slugify(product.name.en)}`}
           className="font-semibold text-lg hover:text-primary transition-colors line-clamp-2 mb-1"
         >
           {getName()}

@@ -11,6 +11,8 @@ import { useCurrency } from "@/context/currency-context";
 import { useStore } from "@/context/store-context"; // Assuming useStore exists as per previous context
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { slugify } from "@/lib/utils";
+
 
 interface ProductGridProps {
   products: Product[];
@@ -114,7 +116,7 @@ function ProductListItem({
     <div className="group flex flex-col sm:flex-row gap-6 border rounded-xl p-4 hover:shadow-md transition-all bg-card relative">
       {/* Image */}
       <Link
-        href={`/store/${product.id}`}
+        href={`/product/${slugify(product.name.en)}`}
         className="relative w-full sm:w-48 aspect-square sm:aspect-4/3 rounded-lg overflow-hidden shrink-0 bg-muted cursor-pointer block"
       >
         <Image
@@ -148,7 +150,7 @@ function ProductListItem({
             <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full mb-2 inline-block">
               {product.category}
             </span>
-            <Link href={`/store/${product.id}`}>
+            <Link href={`/product/${slugify(product.name.en)}`}>
               <h3 className="font-bold text-lg text-foreground mb-1 group-hover:text-primary transition-colors cursor-pointer">
                 {getName()}
               </h3>
