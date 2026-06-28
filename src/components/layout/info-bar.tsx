@@ -11,7 +11,7 @@ export function InfoBar() {
   const { currency, setCurrency } = useCurrency();
 
   return (
-    <div className="w-full bg-primary text-primary-foreground py-2 px-10 shadow-sm">
+    <div className="w-full bg-primary text-primary-foreground py-2 px-4 sm:px-6 md:px-10 shadow-sm">
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-sm">
         {/* Contact Info */}
         <div className="flex flex-row flex-wrap justify-center items-center gap-4">

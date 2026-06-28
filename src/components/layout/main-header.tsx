@@ -7,7 +7,7 @@ import { NavHeader } from "./nav-header";
 
 export function MainHeader() {
   return (
-    <header className="sticky top-0 z-50  px-10 flex flex-col w-full bg-background border-b shadow-sm">
+    <header className="sticky top-0 z-50 px-4 sm:px-6 md:px-10 flex flex-col w-full bg-background border-b shadow-sm">
       {/* Top Main Header */}
       <div className="container mx-auto py-4 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Logo */}

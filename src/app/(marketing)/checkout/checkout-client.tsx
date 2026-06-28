@@ -448,12 +448,12 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
                                       {companyInfo?.bankName && (
                                         <div>{language === "ar" ? "البنك:" : "Bank:"} <span className="font-sans font-medium">{companyInfo.bankName}</span></div>
                                       )}
-                                      <div>{language === "ar" ? "رقم الحساب:" : "Account No:"} <span className="font-medium">{companyInfo.bankAccountNo}</span></div>
+                                      <div>{language === "ar" ? "رقم الحساب:" : "Account No:"} <span className="font-medium break-all">{companyInfo.bankAccountNo}</span></div>
                                       {companyInfo?.bankIban && (
-                                        <div>{language === "ar" ? "الآيبان (IBAN):" : "IBAN:"} <span className="font-medium">{companyInfo.bankIban}</span></div>
+                                        <div>{language === "ar" ? "الآيبان (IBAN):" : "IBAN:"} <span className="font-medium break-all">{companyInfo.bankIban}</span></div>
                                       )}
                                       {companyInfo?.bankSwift && (
-                                        <div>{language === "ar" ? "سويفت كود (SWIFT):" : "SWIFT:"} <span className="font-medium">{companyInfo.bankSwift}</span></div>
+                                        <div>{language === "ar" ? "سويفت كود (SWIFT):" : "SWIFT:"} <span className="font-medium break-all">{companyInfo.bankSwift}</span></div>
                                       )}
                                     </div>
                                   </div>
@@ -464,7 +464,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
                                     <span className="font-semibold text-foreground block text-xs uppercase">
                                       {language === "ar" ? "عنوان إنستا باي (InstaPay):" : "InstaPay Address:"}
                                     </span>
-                                    <span className="font-mono text-sm text-foreground font-medium block mt-0.5">
+                                    <span className="font-mono text-sm text-foreground font-medium block mt-0.5 break-all">
                                       {companyInfo.instaPayId}
                                     </span>
                                   </div>
@@ -475,7 +475,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
                                     <span className="font-semibold text-foreground block text-xs uppercase">
                                       {language === "ar" ? "محفظة إلكترونية (فودافون كاش / اتصالات / أورانج):" : "Mobile Wallet (Vodafone Cash / Orange / Etisalat):"}
                                     </span>
-                                    <span className="font-mono text-sm text-foreground font-medium block mt-0.5">
+                                    <span className="font-mono text-sm text-foreground font-medium block mt-0.5 break-all">
                                       {companyInfo.mobileWalletNo}
                                     </span>
                                   </div>
