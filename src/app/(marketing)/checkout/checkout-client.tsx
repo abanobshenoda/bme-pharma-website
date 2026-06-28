@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "@/context/store-context";
 import { useCurrency } from "@/context/currency-context";
 import { useLanguage } from "@/context/language-context";
@@ -23,12 +23,31 @@ import {
   Wallet,
   Banknote,
   ShoppingBag,
+  Truck,
+  Tag,
+  Gift,
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createOrder, OrderInput } from "@/actions/order-actions";
 import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
+import { calculateShippingFee } from "@/actions/shipping-actions";
+
+// Helper: compute per-item effective paid quantity for BUY_X_GET_Y
+function computePaidItems(
+  quantity: number,
+  discountType: string | undefined,
+  buyX: number | undefined,
+  getY: number | undefined,
+): { paidQty: number; freeQty: number } {
+  if (discountType === "BUY_X_GET_Y" && buyX && getY) {
+    const freeQty = Math.floor(quantity / buyX) * getY;
+    const paidQty = Math.max(quantity - freeQty, 0);
+    return { paidQty, freeQty };
+  }
+  return { paidQty: quantity, freeQty: 0 };
+}
 
 export function CheckoutClient() {
   const router = useRouter();
@@ -37,6 +56,12 @@ export function CheckoutClient() {
   const { language } = useLanguage();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [shippingFee, setShippingFee] = useState<number | null>(null);
+  const [shippingLabel, setShippingLabel] = useState<{
+    en: string | null;
+    ar: string | null;
+  } | null>(null);
+  const [isLoadingShipping, setIsLoadingShipping] = useState(true);
   const [formData, setFormData] = useState({
     customerName: "",
     customerEmail: "",
@@ -49,9 +74,42 @@ export function CheckoutClient() {
   const [receiptImage, setReceiptImage] = useState<string>("");
 
   const subtotal = cartTotal;
-  // Fixed shipping fee logic matching server side (this could be synced better ideally)
-  const shippingFee = currency === "EGP" ? 100 : 2;
-  const total = subtotal + shippingFee;
+
+  // Total cart item count
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Fetch shipping fee dynamically based on cart state
+  useEffect(() => {
+    if (cart.length === 0) return;
+    let cancelled = false;
+    const fetchShipping = async () => {
+      setIsLoadingShipping(true);
+      const res = await calculateShippingFee({
+        currency: currency as "EGP" | "USD",
+        cartItemCount,
+        cartSubtotal: subtotal,
+      });
+      if (!cancelled) {
+        if (res.success && res.data) {
+          setShippingFee(res.data.fee);
+          setShippingLabel(
+            res.data.label as { en: string | null; ar: string | null } | null,
+          );
+        } else {
+          // Fallback
+          setShippingFee(currency === "EGP" ? 100 : 2);
+          setShippingLabel(null);
+        }
+        setIsLoadingShipping(false);
+      }
+    };
+    fetchShipping();
+    return () => {
+      cancelled = true;
+    };
+  }, [cart, currency, cartItemCount, subtotal]);
+
+  const total = subtotal + (shippingFee ?? 0);
 
   const clearCart = () => setCart([]);
 
@@ -105,7 +163,7 @@ export function CheckoutClient() {
           : "Order placed successfully!",
       );
       clearCart();
-      router.push("/store"); // Or a dedicated success page
+      router.push("/store");
     } else {
       toast.error(
         res.error || (language === "ar" ? "حدث خطأ" : "Something went wrong"),
@@ -405,7 +463,9 @@ export function CheckoutClient() {
                   {language === "ar" ? "ملخص الطلب" : "Order Summary"}
                 </CardTitle>
                 <CardDescription>
-                  {cart.length} {language === "ar" ? "منتجات" : "items"}
+                  {cart.length} {language === "ar" ? "منتجات" : "items"} —{" "}
+                  {cartItemCount}{" "}
+                  {language === "ar" ? "قطعة إجمالاً" : "total pieces"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
@@ -413,8 +473,44 @@ export function CheckoutClient() {
                 <div className="max-h-[40vh] overflow-y-auto p-6 space-y-4 scrollbar-thin">
                   {cart.map((item) => {
                     const price = item.price || 0;
-                    const discount = item.discount || 0;
-                    const discountedPrice = price - (price * discount) / 100;
+                    const discountType = item.discountType || "PERCENTAGE";
+
+                    // Compute display price
+                    let displayLineTotal = 0;
+                    let discountBadge: React.ReactNode = null;
+
+                    if (discountType === "PERCENTAGE") {
+                      const pct = item.discount || 0;
+                      const discountedPrice = price - (price * pct) / 100;
+                      displayLineTotal = discountedPrice * item.quantity;
+                      if (pct > 0) {
+                        discountBadge = (
+                          <span className="inline-flex items-center gap-1 text-[10px] bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full font-semibold">
+                            <Tag className="w-2.5 h-2.5" />
+                            -{pct}%
+                          </span>
+                        );
+                      }
+                    } else if (discountType === "BUY_X_GET_Y") {
+                      const { paidQty, freeQty } = computePaidItems(
+                        item.quantity,
+                        discountType,
+                        item.buyXQuantity,
+                        item.getYQuantity,
+                      );
+                      displayLineTotal = price * paidQty;
+                      if (freeQty > 0) {
+                        discountBadge = (
+                          <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-semibold">
+                            <Gift className="w-2.5 h-2.5" />
+                            {freeQty}{" "}
+                            {language === "ar" ? "مجاناً" : "free"}
+                          </span>
+                        );
+                      }
+                    } else {
+                      displayLineTotal = price * item.quantity;
+                    }
 
                     return (
                       <div key={item.id} className="flex gap-4 items-center">
@@ -433,10 +529,13 @@ export function CheckoutClient() {
                           <p className="text-sm font-semibold truncate">
                             {language === "ar" ? item.name.ar : item.name.en}
                           </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {discountBadge}
+                          </div>
                           <p className="text-sm font-bold text-primary mt-1">
                             {formatPrice(
-                              discountedPrice * item.quantity,
-                              item.currency,
+                              displayLineTotal,
+                              item.currency as "EGP" | "USD",
                             )}
                           </p>
                         </div>
@@ -455,20 +554,57 @@ export function CheckoutClient() {
                       {formatPrice(subtotal)}
                     </span>
                   </div>
+
+                  {/* Shipping Fee Row */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5" />
                       {language === "ar" ? "مصاريف الشحن" : "Shipping Fee"}
+                      {shippingLabel && (
+                        <span className="text-[10px] text-muted-foreground/70">
+                          (
+                          {language === "ar"
+                            ? shippingLabel.ar
+                            : shippingLabel.en}
+                          )
+                        </span>
+                      )}
                     </span>
                     <span className="font-semibold">
-                      {formatPrice(shippingFee)}
+                      {isLoadingShipping ? (
+                        <Loader2 className="w-3 h-3 animate-spin inline" />
+                      ) : shippingFee === 0 ? (
+                        <span className="text-green-600 font-bold">
+                          {language === "ar" ? "مجاناً" : "Free"}
+                        </span>
+                      ) : (
+                        formatPrice(shippingFee ?? 0)
+                      )}
                     </span>
                   </div>
+
+                  {/* Shipping info banner */}
+                  {!isLoadingShipping && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
+                      <Truck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                      <span>
+                        {language === "ar"
+                          ? `إجمالي القطع: ${cartItemCount} قطعة — مصاريف الشحن المطبقة: ${formatPrice(shippingFee ?? 0)}`
+                          : `${cartItemCount} piece${cartItemCount !== 1 ? "s" : ""} in cart — Shipping: ${formatPrice(shippingFee ?? 0)}`}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="pt-3 border-t flex justify-between items-center">
                     <span className="text-lg font-bold">
                       {language === "ar" ? "الإجمالي" : "Total"}
                     </span>
                     <span className="text-2xl font-black text-primary">
-                      {formatPrice(total)}
+                      {isLoadingShipping ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        formatPrice(total)
+                      )}
                     </span>
                   </div>
                 </div>
@@ -478,7 +614,7 @@ export function CheckoutClient() {
                     type="submit"
                     size="lg"
                     className="w-full text-lg py-6"
-                    disabled={isLoading}
+                    disabled={isLoading || isLoadingShipping}
                   >
                     {isLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />

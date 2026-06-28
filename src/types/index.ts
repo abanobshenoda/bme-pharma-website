@@ -16,7 +16,11 @@ export interface Product {
   name: { en: string; ar: string };
   price: number; // Base price
   currency?: Currency; // Base currency (USD or EGP)
-  discount?: number; // Discount percentage
+  // Discount fields
+  discountType?: "PERCENTAGE" | "BUY_X_GET_Y"; // Default: PERCENTAGE
+  discount?: number; // Discount percentage (used when discountType = PERCENTAGE)
+  buyXQuantity?: number; // Buy X items... (used when discountType = BUY_X_GET_Y)
+  getYQuantity?: number; // ...get Y items free
   image: string; // Main image
   images?: string[]; // Gallery images
   category: string;

@@ -42,7 +42,10 @@ const EMPTY_FORM: ProductInput = {
   english_name: "",
   arabic_name: "",
   price: 0,
+  discountType: "PERCENTAGE",
   discount: 0,
+  buyXQuantity: null,
+  getYQuantity: null,
   image: "",
   images: [],
   arabic_description: "",
@@ -120,7 +123,10 @@ export default function ProductsPage() {
       arabic_name: product.arabic_name || "",
       price: product.price || 0,
       currency: product.currency || "USD",
+      discountType: (product as any).discountType || "PERCENTAGE",
       discount: product.discount || 0,
+      buyXQuantity: (product as any).buyXQuantity ?? null,
+      getYQuantity: (product as any).getYQuantity ?? null,
       image: product.image || "",
       images: product.images || [],
       arabic_description: product.arabic_description || "",
@@ -238,7 +244,7 @@ export default function ProductsPage() {
                 placeholder="اسم المنتج"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Currency</Label>
                 <Select
@@ -265,22 +271,91 @@ export default function ProductsPage() {
                   placeholder="0.00"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Discount (%)</Label>
-                <Input
-                  type="number"
-                  value={form.discount || ""}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      discount: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="0"
-                  min={0}
-                  max={100}
-                />
-              </div>
+            </div>
+
+            {/* Discount Section */}
+            <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
+              <Label className="font-semibold text-sm">Discount / Offer</Label>
+              <Select
+                value={form.discountType || "PERCENTAGE"}
+                onValueChange={(val) =>
+                  setForm({
+                    ...form,
+                    discountType: val,
+                    discount: 0,
+                    buyXQuantity: null,
+                    getYQuantity: null,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select discount type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PERCENTAGE">Percentage Discount (%)</SelectItem>
+                  <SelectItem value="BUY_X_GET_Y">Buy X Get Y Free</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {(form.discountType === "PERCENTAGE" || !form.discountType) && (
+                <div className="space-y-2">
+                  <Label>Discount (%)</Label>
+                  <Input
+                    type="number"
+                    value={form.discount || ""}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        discount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    placeholder="0"
+                    min={0}
+                    max={100}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    e.g. 20 = 20% off the price
+                  </p>
+                </div>
+              )}
+
+              {form.discountType === "BUY_X_GET_Y" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Buy X (Quantity)</Label>
+                    <Input
+                      type="number"
+                      value={form.buyXQuantity ?? ""}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          buyXQuantity: parseInt(e.target.value) || null,
+                        })
+                      }
+                      placeholder="e.g. 2"
+                      min={1}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Get Y Free</Label>
+                    <Input
+                      type="number"
+                      value={form.getYQuantity ?? ""}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          getYQuantity: parseInt(e.target.value) || null,
+                        })
+                      }
+                      placeholder="e.g. 1"
+                      min={1}
+                    />
+                  </div>
+                  <p className="col-span-2 text-xs text-muted-foreground">
+                    e.g. Buy 2 Get 1 Free → customer buys 5, gets 2 free (floor(5/2)×1)
+                  </p>
+                </div>
+              )}
             </div>
             {/* SKU */}
             <div className="space-y-2">

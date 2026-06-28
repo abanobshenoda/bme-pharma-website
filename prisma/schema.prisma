@@ -55,7 +55,13 @@ model Product {
   arabic_name         String?
   price               Float?
   currency            String   @default("USD")
-  discount            Float?
+  
+  // Discount fields
+  discountType        String   @default("PERCENTAGE") // PERCENTAGE | BUY_X_GET_Y
+  discount            Float?   // Used when discountType = PERCENTAGE (0-100)
+  buyXQuantity        Int?     // Used when discountType = BUY_X_GET_Y — buy X items...
+  getYQuantity        Int?     // ...get Y items free
+  
   image               String?
   images              String[]
   arabic_description  String?
@@ -372,4 +378,28 @@ model OrderItem {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ── Shipping Rules ──
+
+model ShippingRule {
+  id              Int      @id @default(autoincrement())
+  
+  // Rule type: QUANTITY (based on item count) or AMOUNT (based on order subtotal)
+  ruleType        String   @default("QUANTITY") // QUANTITY | AMOUNT
+  
+  minValue        Float    // Min quantity or min amount to trigger this rule
+  maxValue        Float?   // Max quantity or amount (null = no upper limit)
+  
+  price           Float    // Shipping price for this tier
+  currency        String   @default("EGP") // EGP | USD — independent per currency
+  
+  arabic_label    String?  // e.g. "أكثر من قطعتين"
+  english_label   String?  // e.g. "More than 2 items"
+  
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0) // Lower = evaluated first
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

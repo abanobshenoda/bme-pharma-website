@@ -132,7 +132,11 @@ export type ProductInput = {
   arabic_name?: string | null;
   price?: number | null;
   currency?: string;
-  discount?: number | null;
+  // Discount
+  discountType?: string; // "PERCENTAGE" | "BUY_X_GET_Y"
+  discount?: number | null; // Percentage value (0-100)
+  buyXQuantity?: number | null; // Buy X items...
+  getYQuantity?: number | null; // ...get Y items free
   image?: string | null;
   images?: string[];
   arabic_description?: string | null;

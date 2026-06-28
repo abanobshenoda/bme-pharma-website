@@ -126,10 +126,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const wishlistCount = wishlist.length;
   const cartTotal = cart.reduce((total, item) => {
-    const itemPrice = item.discount
-      ? item.price - item.price * (item.discount / 100)
-      : item.price;
-    return total + itemPrice * item.quantity;
+    const basePrice = item.price || 0;
+    const discountType = item.discountType || "PERCENTAGE";
+    let effectivePrice = basePrice;
+
+    if (discountType === "PERCENTAGE") {
+      const pct = item.discount || 0;
+      effectivePrice = basePrice - basePrice * (pct / 100);
+      return total + effectivePrice * item.quantity;
+    } else if (discountType === "BUY_X_GET_Y") {
+      const buyX = item.buyXQuantity || 1;
+      const getY = item.getYQuantity || 1;
+      // How many free items the customer earns: floor(quantity / buyX) * getY
+      const freeItems = Math.floor(item.quantity / buyX) * getY;
+      const paidItems = Math.max(item.quantity - freeItems, 0);
+      return total + basePrice * paidItems;
+    }
+
+    return total + basePrice * item.quantity;
   }, 0);
 
   return (

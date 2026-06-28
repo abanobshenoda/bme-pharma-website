@@ -3,6 +3,19 @@
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
+// Local type to handle the new discount fields returned from DB query
+type ProductWithDiscount = {
+  id: number;
+  english_name: string;
+  arabic_name: string | null;
+  price: number | null;
+  currency: string;
+  discount: number | null;
+  discountType: string;
+  buyXQuantity: number | null;
+  getYQuantity: number | null;
+};
+
 export type OrderInput = {
   customerName: string;
   customerEmail: string;
@@ -31,23 +44,29 @@ export async function createOrder(data: OrderInput) {
       return { success: false, error: "One or more products not found" };
     }
 
-    // 2. Calculate totals using DB prices and apply conversion if necessary
-    //    For simplicity in this V1, we assume all items are converted to the checkout currency.
-    //    We will calculate the conversion safely on the server side if needed, or rely on the frontend
-    //    providing the current checkout currency and we do a standard check.
-    //    For accurate production billing, a server-side exchange rate is best,
-    //    but here we replicate the context logic:
-
+    // 2. Calculate totals using DB prices, discounts, and currency conversion
     let subtotal = 0;
     const EXCHANGE_RATE = 50; // Sync with context
+    let totalCartItemCount = 0;
 
     const orderItemsData = data.items.map((item) => {
       const product = products.find(
-        (p: { id: number }) => p.id === item.productId,
-      )!;
+        (p) => p.id === item.productId,
+      )! as unknown as ProductWithDiscount;
 
       const price = product.price || 0;
-      const discount = product.discount || 0;
+      const discountType = product.discountType || "PERCENTAGE";
+
+      let paidQuantity = item.quantity;
+
+      if (discountType === "BUY_X_GET_Y") {
+        const buyX = product.buyXQuantity || 1;
+        const getY = product.getYQuantity || 1;
+        const freeItems = Math.floor(item.quantity / buyX) * getY;
+        paidQuantity = Math.max(item.quantity - freeItems, 0);
+      }
+
+      const discount = discountType === "PERCENTAGE" ? (product.discount || 0) : 0;
       const discountedPrice = price - (price * discount) / 100;
 
       let finalUnitPrice = discountedPrice;
@@ -60,8 +79,9 @@ export async function createOrder(data: OrderInput) {
         finalUnitPrice = discountedPrice / EXCHANGE_RATE;
       }
 
-      const totalPrice = finalUnitPrice * item.quantity;
+      const totalPrice = finalUnitPrice * paidQuantity;
       subtotal += totalPrice;
+      totalCartItemCount += item.quantity;
 
       return {
         productId: product.id,
@@ -72,11 +92,34 @@ export async function createOrder(data: OrderInput) {
       };
     });
 
-    // Simple shipping fee logic based on currency
-    const shippingFee = data.currency === "EGP" ? 100 : 2;
+    // 3. Calculate shipping fee dynamically from DB rules
+    let shippingFee = data.currency === "EGP" ? 100 : 2; // fallback
+
+    const shippingRules = await prisma.shippingRule.findMany({
+      where: { isActive: true, currency: data.currency },
+      orderBy: [{ sortOrder: "asc" }, { minValue: "asc" }],
+    });
+
+    if (shippingRules.length > 0) {
+      let matched = null;
+      for (const rule of shippingRules) {
+        const checkValue =
+          rule.ruleType === "QUANTITY" ? totalCartItemCount : subtotal;
+        const meetsMin = checkValue >= rule.minValue;
+        const meetsMax =
+          rule.maxValue === null || rule.maxValue === undefined || checkValue <= rule.maxValue;
+
+        if (meetsMin && meetsMax) {
+          matched = rule;
+        }
+      }
+      if (!matched) matched = shippingRules[0];
+      shippingFee = matched.price;
+    }
+
     const total = subtotal + shippingFee;
 
-    // 3. Create the order
+    // 4. Create the order
     const order = await prisma.order.create({
       data: {
         customerName: data.customerName,
@@ -91,7 +134,6 @@ export async function createOrder(data: OrderInput) {
         subtotal,
         shippingFee,
         total,
-        // If COD, payment is PENDING. If MANUAL and they uploaded an image, it's also PENDING review.
         paymentStatus: "PENDING",
         orderStatus: "PENDING",
         items: {
