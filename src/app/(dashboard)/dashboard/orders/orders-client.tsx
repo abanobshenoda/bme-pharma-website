@@ -37,11 +37,23 @@ import {
   Package,
   Loader2,
   Printer,
+  Trash2,
 } from "lucide-react";
 import {
   updateOrderStatus,
   updatePaymentStatus,
+  deleteOrder,
 } from "@/actions/order-actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -77,6 +89,7 @@ type Order = {
 export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
   // Helper formats
   const formatPrice = (price: number, currency: string) => {
@@ -163,6 +176,19 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
       toast.error("Failed to update status");
     }
     setIsUpdating(false);
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    setIsUpdating(true);
+    const res = await deleteOrder(orderId);
+    if (res?.success) {
+      toast.success("Order deleted successfully");
+      setOrders(orders.filter((o) => o.id !== orderId));
+    } else {
+      toast.error(res?.error || "Failed to delete order");
+    }
+    setIsUpdating(false);
+    setOrderToDelete(null);
   };
 
   return (
@@ -324,6 +350,13 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
                             className="text-red-600"
                           >
                             Mark as Failed
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setOrderToDelete(order.id)}
+                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" /> Delete Order
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -526,6 +559,36 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog
+        open={!!orderToDelete}
+        onOpenChange={(open) => {
+          if (!open) setOrderToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the order
+              and all of its associated items.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(e) => {
+                e.preventDefault();
+                if (orderToDelete) handleDeleteOrder(orderToDelete);
+              }}
+              disabled={isUpdating}
+            >
+              {isUpdating ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

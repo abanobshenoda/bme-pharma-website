@@ -155,6 +155,7 @@ export async function createOrder(data: OrderInput) {
 export async function getOrders() {
   try {
     const orders = await prisma.order.findMany({
+      where: { isDeleted: false } as any,
       orderBy: { createdAt: "desc" },
       include: { items: true },
     });
@@ -207,3 +208,18 @@ export async function updatePaymentStatus(id: string, paymentStatus: string) {
     return { success: false, error: "Failed to update payment status" };
   }
 }
+
+export async function deleteOrder(id: string) {
+  try {
+    const order = await prisma.order.update({
+      where: { id },
+      data: { isDeleted: true } as any,
+    });
+    revalidatePath("/dashboard/orders");
+    return { success: true, data: order };
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    return { success: false, error: "Failed to delete order" };
+  }
+}
+

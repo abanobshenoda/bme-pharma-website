@@ -28,10 +28,10 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
-    prisma.order.count(),
-    prisma.order.count({ where: { orderStatus: "DELIVERED" } }),
+    prisma.order.count({ where: { isDeleted: false } as any }),
+    prisma.order.count({ where: { orderStatus: "DELIVERED", isDeleted: false } as any }),
     prisma.order.count({
-      where: { orderStatus: { in: ["PENDING", "PROCESSING", "SHIPPED"] } },
+      where: { orderStatus: { in: ["PENDING", "PROCESSING", "SHIPPED"] }, isDeleted: false } as any,
     }),
     prisma.order.aggregate({
       _sum: { total: true },
@@ -40,6 +40,7 @@ export default async function DashboardPage() {
     }),
     // Fetch last 5 orders
     prisma.order.findMany({
+      where: { isDeleted: false } as any,
       take: 5,
       orderBy: { createdAt: "desc" },
     }),
