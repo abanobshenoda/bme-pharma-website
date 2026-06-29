@@ -39,54 +39,9 @@ export const ProductImageGallery = ({
   const activeMedia = mediaItems[activeIndex];
 
   return (
-    <div className="flex flex-col-reverse md:flex-row gap-4">
-      {/* Thumbnails Column */}
-      <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto md:max-h-[500px] hide-scrollbar shrink-0 w-full">
-        {mediaItems.map((media, index) => (
-          <button
-            key={index}
-            type="button"
-            tabIndex={0}
-            aria-label={`${media.type === "video" ? "Video" : "Image"} ${index + 1}`}
-            onClick={() => setActiveIndex(index)}
-            className={cn(
-              "relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shrink-0 transition-all border-2",
-              activeIndex === index
-                ? "border-primary ring-2 ring-primary/30"
-                : "border-transparent hover:border-primary/40",
-            )}
-          >
-            {media.type === "video" ? (
-              <>
-                {media.poster ? (
-                  <Image
-                    src={media.poster}
-                    alt={`${title} video ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted" />
-                )}
-                {/* Play overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <Play className="w-5 h-5 text-white fill-white" />
-                </div>
-              </>
-            ) : (
-              <Image
-                src={media.src}
-                alt={`${title} thumbnail ${index + 1}`}
-                fill
-                className="object-cover"
-              />
-            )}
-          </button>
-        ))}
-      </div>
-
+    <div className="w-full min-w-0 flex flex-col gap-3">
       {/* Main Display */}
-      <div className="flex-1 rounded-2xl border-2 border-primary/20 bg-muted/30 p-4 overflow-hidden">
+      <div className="w-full rounded-2xl border-2 border-primary/20 bg-muted/30 p-3 overflow-hidden">
         <div className="relative w-full aspect-square rounded-xl overflow-hidden">
           {activeMedia.type === "video" ? (
             <video
@@ -101,12 +56,59 @@ export const ProductImageGallery = ({
               src={activeMedia.src}
               alt={title}
               fill
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-contain"
               priority
             />
           )}
         </div>
       </div>
+
+      {/* Thumbnails Row — horizontal scrollable strip */}
+      {mediaItems.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar w-full pb-1">
+          {mediaItems.map((media, index) => (
+            <button
+              key={index}
+              type="button"
+              tabIndex={0}
+              aria-label={`${media.type === "video" ? "Video" : "Image"} ${index + 1}`}
+              onClick={() => setActiveIndex(index)}
+              className={cn(
+                "relative w-[64px] h-[64px] rounded-lg overflow-hidden shrink-0 transition-all border-2",
+                activeIndex === index
+                  ? "border-primary ring-2 ring-primary/30"
+                  : "border-transparent hover:border-primary/40",
+              )}
+            >
+              {media.type === "video" ? (
+                <>
+                  {media.poster ? (
+                    <Image
+                      src={media.poster}
+                      alt={`${title} video ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted" />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <Play className="w-4 h-4 text-white fill-white" />
+                  </div>
+                </>
+              ) : (
+                <Image
+                  src={media.src}
+                  alt={`${title} thumbnail ${index + 1}`}
+                  fill
+                  className="object-cover"
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -55,7 +55,7 @@ export const SingleProductClient = ({
             <BreadcrumbSeparator className="rtl:rotate-180" />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {getName().length > 5 ? `${getName().slice(0, 5)}...` : getName()}
+                {getName().length > 25 ? `${getName().slice(0, 25)}...` : getName()}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -63,9 +63,9 @@ export const SingleProductClient = ({
       </div>
 
       {/* Product Card */}
-      <div className="rounded-3xl border-2 border-primary/20 dark:border-primary/30 bg-card p-4 md:p-8 shadow-sm">
+      <div className="rounded-3xl border-2 border-primary/20 dark:border-primary/30 bg-card p-4 md:p-8 shadow-sm overflow-hidden">
         {/* Top Section: Image + Info */}
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 mb-8">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 mb-8">
           <ProductImageGallery
             mainImage={product.image}
             images={product.images}

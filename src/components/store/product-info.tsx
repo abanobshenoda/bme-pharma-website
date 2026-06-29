@@ -77,7 +77,7 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-5 py-2">
+    <div className="flex flex-col gap-5 py-2 w-full min-w-0">
       {/* Availability */}
       <div className="text-sm font-semibold text-foreground">
         {language === "ar" ? "التوفر:" : "Availability:"}{" "}
@@ -127,15 +127,15 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Promotion Details */}
       {product.discountType === "BUY_X_GET_Y" && product.buyXQuantity && product.getYQuantity && (
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-200/60 dark:border-emerald-800/40 flex items-start gap-3.5 my-1.5 shadow-sm">
-          <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm shrink-0">
-            <Gift className="w-5 h-5" />
+        <div className="w-full min-w-0 p-3 md:p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-200/60 dark:border-emerald-800/40 flex items-start gap-3 my-1.5 shadow-sm">
+          <div className="p-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm shrink-0">
+            <Gift className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <div>
-            <h4 className="font-extrabold text-emerald-800 dark:text-emerald-300 text-sm md:text-base">
+          <div className="min-w-0 flex-1">
+            <h4 className="font-extrabold text-emerald-800 dark:text-emerald-300 text-sm">
               {language === "ar" ? "عرض خاص متوفر!" : "Special Offer Available!"}
             </h4>
-            <p className="text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
+            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1 break-words">
               {language === "ar"
                 ? product.buyXQuantity === 1
                   ? "اشتري علبة واحصل على هدية مجاناً!"
@@ -149,15 +149,15 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
       )}
 
       {product.discountType === "PERCENTAGE" && discount > 0 && (
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-50/80 to-pink-50/50 dark:from-rose-950/20 dark:to-pink-950/10 border border-rose-200/60 dark:border-rose-800/40 flex items-start gap-3.5 my-1.5 shadow-sm">
-          <div className="p-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-center shadow-sm shrink-0 w-10 h-10 flex items-center justify-center">
-            <span className="text-base">%</span>
+        <div className="w-full min-w-0 p-3 md:p-4 rounded-2xl bg-gradient-to-br from-rose-50/80 to-pink-50/50 dark:from-rose-950/20 dark:to-pink-950/10 border border-rose-200/60 dark:border-rose-800/40 flex items-start gap-3 my-1.5 shadow-sm">
+          <div className="p-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-center shadow-sm shrink-0 w-9 h-9 flex items-center justify-center">
+            <span className="text-sm">%</span>
           </div>
-          <div>
-            <h4 className="font-extrabold text-rose-800 dark:text-rose-300 text-sm md:text-base">
+          <div className="min-w-0 flex-1">
+            <h4 className="font-extrabold text-rose-800 dark:text-rose-300 text-sm">
               {language === "ar" ? "وفر أكثر اليوم!" : "Save More Today!"}
             </h4>
-            <p className="text-xs md:text-sm font-semibold text-rose-600 dark:text-rose-400 mt-1">
+            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-1 break-words">
               {language === "ar"
                 ? `وفر ${discount}% من السعر الأصلي عند الشراء الآن!`
                 : `Get ${discount}% off the original price when you order now!`}
@@ -212,12 +212,12 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-1">
+      <div className="flex flex-col gap-3 pt-1 w-full">
         <Button
           size="lg"
           disabled={isOutOfStock}
           onClick={handleAddToCart}
-          className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base py-6"
+          className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base py-6"
         >
           {t("product.addToCart") ||
             (language === "ar" ? "أضف للسلة" : "Add To Cart")}
@@ -226,14 +226,14 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
           size="lg"
           variant="outline"
           onClick={handleToggleWishlist}
-          className={`rounded-full font-bold text-base py-6 border-2 ${
+          className={`w-full rounded-full font-bold text-base py-6 border-2 ${
             isWishlisted
               ? "border-red-400 bg-red-50 text-red-500 hover:bg-red-100"
               : "border-muted-foreground/30 text-foreground hover:bg-muted"
           }`}
         >
           <Heart
-            className={`w-4 h-4 mr-2 ${isWishlisted ? "fill-current" : ""}`}
+            className={`w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 ${isWishlisted ? "fill-current" : ""}`}
           />
           {isWishlisted
             ? language === "ar"
