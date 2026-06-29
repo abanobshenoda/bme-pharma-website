@@ -24,6 +24,8 @@ interface CompanyInfoWithPayments {
   english_address?: string | null;
   arabic_workingDays?: string | null;
   english_workingDays?: string | null;
+  arabic_description?: string | null;
+  english_description?: string | null;
   facebook?: string | null;
   twitter?: string | null;
   instagram?: string | null;
@@ -53,6 +55,9 @@ export default async function CompanyInfoPage() {
       english_address: formData.get("english_address") as string,
       arabic_workingDays: formData.get("arabic_workingDays") as string,
       english_workingDays: formData.get("english_workingDays") as string,
+      // Preserve footer description (managed from the Footer page)
+      arabic_description: companyInfo?.arabic_description ?? null,
+      english_description: companyInfo?.english_description ?? null,
       facebook: formData.get("facebook") as string,
       twitter: formData.get("twitter") as string,
       instagram: formData.get("instagram") as string,

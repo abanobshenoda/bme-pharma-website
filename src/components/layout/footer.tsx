@@ -46,9 +46,9 @@ export function Footer({ categories = [], companyInfo }: FooterProps) {
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               {language === "ar"
-                ? (companyInfo as any)?.arabic_description ||
+                ? companyInfo?.arabic_description ||
                   "نلتزم بتقديم منتجات صيدلانية عالية الجودة لتحسين حياة الناس. ثقتكم هي أولويتنا."
-                : (companyInfo as any)?.english_description ||
+                : companyInfo?.english_description ||
                   "Dedicated to providing high-quality pharmaceutical products to improve lives. Your trust is our priority."}
             </p>
             <div className="flex gap-4">
