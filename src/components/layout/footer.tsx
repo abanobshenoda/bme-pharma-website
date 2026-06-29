@@ -45,10 +45,11 @@ export function Footer({ categories = [], companyInfo }: FooterProps) {
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
-              {t("footer.description") ||
-                (language === "ar"
-                  ? "نلتزم بتقديم منتجات صيدلانية عالية الجودة لتحسين حياة الناس. ثقتكم هي أولويتنا."
-                  : "Dedicated to providing high-quality pharmaceutical products to improve lives. Your trust is our priority.")}
+              {language === "ar"
+                ? (companyInfo as any)?.arabic_description ||
+                  "نلتزم بتقديم منتجات صيدلانية عالية الجودة لتحسين حياة الناس. ثقتكم هي أولويتنا."
+                : (companyInfo as any)?.english_description ||
+                  "Dedicated to providing high-quality pharmaceutical products to improve lives. Your trust is our priority."}
             </p>
             <div className="flex gap-4">
               {companyInfo?.facebook && (

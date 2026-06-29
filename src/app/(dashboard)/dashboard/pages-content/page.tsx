@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   ShoppingBag,
   ArrowRight,
+  LayoutTemplate,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -52,6 +53,12 @@ const contentPages = [
     description: "Manage contact details, address, and social media links.",
     icon: Info,
     href: "/dashboard/pages-content/company-info",
+  },
+  {
+    title: "Footer",
+    description: "Edit footer description, contact info, and social links.",
+    icon: LayoutTemplate,
+    href: "/dashboard/pages-content/footer",
   },
 ];
 

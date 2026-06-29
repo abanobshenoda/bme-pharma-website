@@ -36,6 +36,7 @@ export const updateCompanyInfo = async (data: CompanyInfoInput) => {
     }
 
     revalidatePath("/dashboard/pages-content/company-info");
+    revalidatePath("/dashboard/pages-content/footer");
     revalidatePath("/");
     return { success: true, data: updatedInfo };
   } catch (error) {

@@ -195,6 +195,8 @@ model CompanyInfo {
   english_address     String?
   arabic_workingDays  String?
   english_workingDays String?
+  arabic_description  String?
+  english_description String?
   
   // Social Media Links
   facebook            String?
