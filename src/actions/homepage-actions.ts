@@ -45,6 +45,7 @@ export async function createSlide(data: HeroSlideInput) {
       },
     });
     revalidatePath("/dashboard/pages-content/homepage");
+    revalidatePath("/");
     return { success: true, data: newSlide };
   } catch (error) {
     return { success: false, error: "Failed to create slide" };
@@ -70,6 +71,7 @@ export async function updateSlide(id: number, data: Partial<HeroSlideInput>) {
       },
     });
     revalidatePath("/dashboard/pages-content/homepage");
+    revalidatePath("/");
     return { success: true, data: updatedSlide };
   } catch (error) {
     return { success: false, error: "Failed to update slide" };
@@ -82,6 +84,7 @@ export async function deleteSlide(id: number) {
       where: { id },
     });
     revalidatePath("/dashboard/pages-content/homepage");
+    revalidatePath("/");
     return { success: true };
   } catch (error) {
     return { success: false, error: "Failed to delete slide" };

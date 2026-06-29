@@ -31,6 +31,7 @@ export const createCategorySection = async (data: CategorySectionInput) => {
       },
     });
     revalidatePath("/dashboard/pages-content/homepage");
+    revalidatePath("/");
     return { success: true, data: newSection };
   } catch (error) {
     return { success: false, error: "Failed to create category section" };
@@ -52,6 +53,7 @@ export const updateCategorySection = async (
       },
     });
     revalidatePath("/dashboard/pages-content/homepage");
+    revalidatePath("/");
     return { success: true, data: updatedSection };
   } catch (error) {
     return { success: false, error: "Failed to update category section" };
