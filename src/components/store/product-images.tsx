@@ -41,7 +41,7 @@ export const ProductImageGallery = ({
   return (
     <div className="flex flex-col-reverse md:flex-row gap-4">
       {/* Thumbnails Column */}
-      <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto md:max-h-[500px] hide-scrollbar shrink-0">
+      <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto md:max-h-[500px] hide-scrollbar shrink-0 w-full">
         {mediaItems.map((media, index) => (
           <button
             key={index}

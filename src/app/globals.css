@@ -166,3 +166,11 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60;
   }
 }
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -256,7 +256,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
               {language === "ar" ? "بيانات الشحن" : "Shipping Information"}
             </h2>
             <Card>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="customerName">
@@ -355,7 +355,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
               {language === "ar" ? "طريقة الدفع" : "Payment Method"}
             </h2>
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="space-y-4">
                   {!codEnabled && !manualEnabled && (
                     <div className="text-center p-4 border border-dashed rounded-xl bg-destructive/5 text-destructive font-medium">
@@ -526,7 +526,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
               {language === "ar" ? "ملاحظات إضافية" : "Additional Notes"}
             </h2>
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <Textarea
                   name="notes"
                   value={formData.notes}
@@ -645,8 +645,8 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
                   </div>
 
                   {/* Shipping Fee Row */}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
+                  <div className="flex justify-between gap-4 text-sm">
+                    <span className="text-muted-foreground flex flex-wrap items-center gap-1.5 min-w-0">
                       <Truck className="w-3.5 h-3.5" />
                       {language === "ar" ? "مصاريف الشحن" : "Shipping Fee"}
                       {shippingLabel && (

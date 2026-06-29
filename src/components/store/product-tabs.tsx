@@ -42,7 +42,7 @@ export const ProductTabs = ({
   return (
     <div className="rounded-2xl bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 p-4 md:p-6">
       {/* Tab Triggers */}
-      <div className="flex items-center gap-2 md:gap-6 mb-5 border-b border-primary/20 dark:border-primary/30 pb-3">
+      <div className="flex items-center gap-2 md:gap-6 mb-5 border-b border-primary/20 dark:border-primary/30 pb-3 overflow-x-auto hide-scrollbar w-full whitespace-nowrap scroll-smooth shrink-0">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -139,6 +139,10 @@ const RelatedProductCard = ({ product }: { product: Product }) => {
   const name = language === "ar" ? product.name.ar : product.name.en;
   const rating = product.rating || 0;
 
+  const discountedPrice = product.discount
+    ? product.price - product.price * (product.discount / 100)
+    : product.price;
+
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -168,10 +172,20 @@ const RelatedProductCard = ({ product }: { product: Product }) => {
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
 
-        {/* Featured Badge */}
-        <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded">
-          {language === "ar" ? "مميز" : "Featured"}
-        </span>
+        {/* Floating Badge */}
+        {product.discountType === "PERCENTAGE" && product.discount && product.discount > 0 ? (
+          <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-rose-500 text-white px-2 py-0.5 rounded">
+            {language === "ar" ? `خصم ${product.discount}%` : `-${product.discount}%`}
+          </span>
+        ) : product.discountType === "BUY_X_GET_Y" ? (
+          <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-emerald-600 text-white px-2 py-0.5 rounded">
+            {language === "ar" ? "عرض" : "Offer"}
+          </span>
+        ) : (
+          <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded">
+            {language === "ar" ? "مميز" : "Featured"}
+          </span>
+        )}
 
         {/* Heart */}
         <button
@@ -200,12 +214,25 @@ const RelatedProductCard = ({ product }: { product: Product }) => {
         <h4 className="text-xs font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
           {name}
         </h4>
-        <div className="flex items-center justify-between mt-auto">
-          <span className="text-xs font-bold text-primary">
-            {formatPrice(product.price)}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {rating.toFixed(1)} {language === "ar" ? "تقييم" : "Rating"}
+        <div className="flex flex-wrap gap-1.5 items-end justify-between mt-auto pt-1">
+          <div className="flex flex-col items-start min-w-0">
+            {discountedPrice < product.price ? (
+              <div className="flex items-baseline gap-1 flex-wrap">
+                <span className="text-xs font-bold text-primary whitespace-nowrap">
+                  {formatPrice(discountedPrice, product.currency)}
+                </span>
+                <span className="text-[9px] text-muted-foreground line-through whitespace-nowrap">
+                  {formatPrice(product.price, product.currency)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-xs font-bold text-primary whitespace-nowrap">
+                {formatPrice(product.price, product.currency)}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+            ★ {rating.toFixed(1)}
           </span>
         </div>
       </div>
