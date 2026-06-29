@@ -23,7 +23,7 @@ export const SingleProductClient = ({
   product,
   relatedProducts,
 }: SingleProductClientProps) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
 
   const getName = () => (language === "ar" ? product.name.ar : product.name.en);
 
@@ -35,13 +35,13 @@ export const SingleProductClient = ({
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/">
-                {t("header.home") || (language === "ar" ? "الرئيسية" : "Home")}
+                {language === "ar" ? "الرئيسية" : "Home"}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="rtl:rotate-180" />
             <BreadcrumbItem>
               <BreadcrumbLink href="/store">
-                {t("header.store") || (language === "ar" ? "المتجر" : "Store")}
+                {language === "ar" ? "المتجر" : "Store"}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator className="rtl:rotate-180" />

@@ -20,8 +20,8 @@ interface FooterProps {
   companyInfo?: CompanyInfo | null;
 }
 
-export function Footer({ categories = [], companyInfo }: FooterProps) {
-  const { t, language } = useLanguage();
+export function Footer({ companyInfo }: FooterProps) {
+  const { language } = useLanguage();
 
   const currentYear = new Date().getFullYear();
 
@@ -173,13 +173,11 @@ export function Footer({ categories = [], companyInfo }: FooterProps) {
             {language === "ar" ? "جميع الحقوق محفوظة." : "All rights reserved."}
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-primary transition-colors">
-              {t("footer.privacy") ||
-                (language === "ar" ? "سياسة الخصوصية" : "Privacy Policy")}
+            <Link href="/privacy-policy" className="hover:text-primary transition-colors">
+              {language === "ar" ? "سياسة الخصوصية" : "Privacy Policy"}
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
-              {t("footer.terms") ||
-                (language === "ar" ? "الشروط والأحكام" : "Terms & Conditions")}
+            <Link href="/terms" className="hover:text-primary transition-colors">
+              {language === "ar" ? "الشروط والأحكام" : "Terms & Conditions"}
             </Link>
           </div>
         </div>
