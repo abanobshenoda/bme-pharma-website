@@ -1,12 +1,16 @@
 "use client";
 
 import { FaPhone, FaEnvelope } from "react-icons/fa";
-import { companyContact } from "@/data/contact-info";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useLanguage } from "@/context/language-context";
 import { useCurrency } from "@/context/currency-context";
 
-export function InfoBar() {
+interface InfoBarProps {
+  email?: string | null;
+  phone?: string | null;
+}
+
+export function InfoBar({ email, phone }: InfoBarProps) {
   const { language, setLanguage } = useLanguage();
   const { currency, setCurrency } = useCurrency();
 
@@ -15,20 +19,24 @@ export function InfoBar() {
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-sm">
         {/* Contact Info */}
         <div className="flex flex-row flex-wrap justify-center items-center gap-4">
-          <a
-            href={`tel:${companyContact.phone}`}
-            className="flex items-center gap-2 hover:underline transition-all"
-          >
-            <FaPhone className="h-3 w-3" />
-            <span dir="ltr">{companyContact.phoneDisplay}</span>
-          </a>
-          <a
-            href={`mailto:${companyContact.email}`}
-            className="flex items-center gap-2 hover:underline transition-all"
-          >
-            <FaEnvelope className="h-3 w-3" />
-            <span>{companyContact.email}</span>
-          </a>
+          {phone && (
+            <a
+              href={`tel:${phone}`}
+              className="flex items-center gap-2 hover:underline transition-all"
+            >
+              <FaPhone className="h-3 w-3" />
+              <span dir="ltr">{phone}</span>
+            </a>
+          )}
+          {email && (
+            <a
+              href={`mailto:${email}`}
+              className="flex items-center gap-2 hover:underline transition-all"
+            >
+              <FaEnvelope className="h-3 w-3" />
+              <span>{email}</span>
+            </a>
+          )}
         </div>
 
         {/* Actions */}

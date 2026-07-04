@@ -32,6 +32,8 @@ import { useRouter } from "next/navigation";
 import { createOrder, OrderInput } from "@/actions/order-actions";
 import CloudinaryUploadWidget from "@/components/cloudinary-upload-widget";
 import { calculateShippingFee } from "@/actions/shipping-actions";
+import { validatePromoCode, ValidatePromoResult } from "@/actions/promo-code-actions";
+import { TicketPercent, X as XIcon, CheckCircle } from "lucide-react";
 
 // Helper: compute per-item effective paid quantity for BUY_X_GET_Y
 function computePaidItems(
@@ -80,6 +82,12 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
     return "COD";
   })());
   const [receiptImage, setReceiptImage] = useState<string>("");
+
+  // Promo code state
+  const [promoInput, setPromoInput] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<Extract<ValidatePromoResult, { success: true }> | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
 
   const getConvertedPrice = (price: number, baseCurrency: "USD" | "EGP" = "USD") => {
     if (currency === baseCurrency) return price;
@@ -148,7 +156,8 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
     };
   }, [cart, currency, cartItemCount, subtotal]);
 
-  const total = subtotal + (shippingFee ?? 0);
+  const promoDiscount = appliedPromo ? appliedPromo.discountAmount : 0;
+  const total = subtotal + (shippingFee ?? 0) - promoDiscount;
 
   const clearCart = () => setCart([]);
 
@@ -158,6 +167,28 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoError(null);
+    setAppliedPromo(null);
+    const res = await validatePromoCode(promoInput.trim(), currency, subtotal);
+    setPromoLoading(false);
+    if (res.success) {
+      setAppliedPromo(res);
+      toast.success(language === "ar" ? "تم تطبيق كود الخصم!" : "Promo code applied!");
+    } else {
+      setPromoError(res.error);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError(null);
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +216,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
       paymentMethod,
       receiptImage,
       currency,
+      promoCode: appliedPromo?.code,
       items: cart.map((item) => ({
         productId: parseInt(item.id, 10),
         quantity: item.quantity,
@@ -209,6 +241,7 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
       );
     }
   };
+
 
   if (cart.length === 0) {
     return (
@@ -683,6 +716,81 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
                       </span>
                     </div>
                   )}
+
+                  {/* Promo Code Input */}
+                  <div className="pt-2 space-y-2">
+                    {appliedPromo ? (
+                      /* Applied promo badge */
+                      <div className="flex items-center justify-between p-2.5 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                          <div className="text-xs">
+                            <span className="font-mono font-bold">{appliedPromo.code}</span>
+                            <span className="text-muted-foreground ml-1">
+                              {language === "ar" ? "— خصم" : "— discount applied"}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemovePromo}
+                          className="text-muted-foreground hover:text-destructive transition-colors ml-2"
+                          title="Remove promo code"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      /* Promo code input */
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <TicketPercent className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder={language === "ar" ? "كود الخصم" : "Promo code"}
+                            value={promoInput}
+                            onChange={(e) => {
+                              setPromoInput(e.target.value.toUpperCase());
+                              setPromoError(null);
+                            }}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyPromo())}
+                            className="pl-8 h-9 text-sm font-mono uppercase"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleApplyPromo}
+                          disabled={promoLoading || !promoInput.trim()}
+                          className="h-9 px-3 text-xs whitespace-nowrap"
+                        >
+                          {promoLoading ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            language === "ar" ? "تطبيق" : "Apply"
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    {promoError && (
+                      <p className="text-xs text-destructive px-1">{promoError}</p>
+                    )}
+                  </div>
+
+                  {/* Promo Discount Row */}
+                  {appliedPromo && (
+                    <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                      <span className="flex items-center gap-1.5">
+                        <TicketPercent className="w-3.5 h-3.5" />
+                        {language === "ar" ? "خصم الكوبون" : "Promo Discount"}
+                      </span>
+                      <span className="font-semibold">
+                        − {formatPrice(promoDiscount, currency)}
+                      </span>
+                    </div>
+                  )}
+
 
                   <div className="pt-3 border-t flex justify-between items-center">
                     <span className="text-lg font-bold">

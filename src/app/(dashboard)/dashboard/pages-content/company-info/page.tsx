@@ -15,6 +15,7 @@ import {
   updateCompanyInfo,
 } from "@/actions/company-info-actions";
 import { revalidatePath } from "next/cache";
+import { TestEmailButton } from "./test-email-button";
 
 interface CompanyInfoWithPayments {
   id?: number;
@@ -109,6 +110,12 @@ export default async function CompanyInfoPage() {
                   defaultValue={companyInfo?.email || ""}
                   placeholder="info@company.com"
                 />
+              </div>
+
+              {/* Test Email Section */}
+              <div className="grid gap-2 pt-2 border-t">
+                <Label className="text-sm font-medium">Test Email Notification</Label>
+                <TestEmailButton />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone">Phone Number</Label>

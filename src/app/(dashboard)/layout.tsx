@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Menu,
   Truck,
+  Ticket,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -88,6 +89,12 @@ const SidebarContent = () => (
         <a href="/dashboard/shipping-rules">
           <Truck className="h-4 w-4" />
           Shipping Rules
+        </a>
+      </Button>
+      <Button variant="ghost" className="w-full justify-start gap-2" asChild>
+        <a href="/dashboard/promo-codes">
+          <Ticket className="h-4 w-4" />
+          Promo Codes
         </a>
       </Button>
     </nav>

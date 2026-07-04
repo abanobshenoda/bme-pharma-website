@@ -54,10 +54,10 @@ export default function LoginPage() {
               </label>
               <Input
                 id="email"
-                placeholder="admin@bmepharma.com"
                 required
                 type="email"
                 name="email"
+                autoComplete="off"
                 className="w-full"
               />
             </div>

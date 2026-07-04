@@ -362,6 +362,8 @@ model Order {
   
   subtotal        Float
   shippingFee     Float
+  promoCode       String?     // Applied promo code (if any)
+  promoDiscount   Float?      @default(0) // Amount discounted by promo code
   total           Float
   currency        String      @default("USD") // Currency used at checkout
   
@@ -415,4 +417,27 @@ model ShippingRule {
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// ── Promo Codes ──
+
+model PromoCode {
+  id            Int       @id @default(autoincrement())
+  code          String    @unique // e.g. "SAVE10", "EID2025"
+  
+  discountType  String    @default("PERCENTAGE") // PERCENTAGE | FIXED
+  discountValue Float     // % (0-100) if PERCENTAGE, or flat amount if FIXED
+  currency      String    @default("EGP")        // for FIXED type only
+  
+  isActive      Boolean   @default(true)
+  usageLimit    Int?      // null = unlimited
+  usageCount    Int       @default(0)
+  
+  minOrderValue Float?    // minimum subtotal required to apply (optional)
+  expiresAt     DateTime? // optional expiry date
+  
+  description   String?   // internal note for admin
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

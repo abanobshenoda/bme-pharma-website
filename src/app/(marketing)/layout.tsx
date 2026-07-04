@@ -22,7 +22,10 @@ export default async function MarketingLayout({
 
   return (
     <div className="flex flex-col min-h-screen ">
-      <InfoBar />
+      <InfoBar
+        email={(companyInfo as any)?.email}
+        phone={(companyInfo as any)?.phone}
+      />
       <MainHeader />
       <div className="flex-1">{children}</div>
       <Footer categories={categories} companyInfo={companyInfo} />

@@ -2,6 +2,8 @@
 
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { sendOrderNotificationEmail } from "@/lib/email";
+import { validatePromoCode, incrementPromoUsage } from "@/actions/promo-code-actions";
 
 // Local type to handle the new discount fields returned from DB query
 type ProductWithDiscount = {
@@ -26,6 +28,7 @@ export type OrderInput = {
   receiptImage?: string;
   notes?: string;
   currency: string;
+  promoCode?: string; // optional applied promo code
   items: {
     productId: number;
     quantity: number;
@@ -117,9 +120,26 @@ export async function createOrder(data: OrderInput) {
       shippingFee = matched.price;
     }
 
-    const total = subtotal + shippingFee;
+    // 4. Validate promo code server-side (prevents frontend tampering)
+    let promoDiscount = 0;
+    let appliedPromoCode: string | undefined = undefined;
 
-    // 4. Create the order
+    if (data.promoCode && data.promoCode.trim()) {
+      const promoResult = await validatePromoCode(
+        data.promoCode.trim(),
+        data.currency,
+        subtotal
+      );
+      if (promoResult.success) {
+        promoDiscount = promoResult.discountAmount;
+        appliedPromoCode = promoResult.code;
+      }
+      // If invalid, we silently skip the discount (order still goes through)
+    }
+
+    const total = subtotal + shippingFee - promoDiscount;
+
+    // 5. Create the order
     const order = await prisma.order.create({
       data: {
         customerName: data.customerName,
@@ -133,6 +153,8 @@ export async function createOrder(data: OrderInput) {
         receiptImage: data.receiptImage,
         subtotal,
         shippingFee,
+        promoCode: appliedPromoCode,
+        promoDiscount,
         total,
         paymentStatus: "PENDING",
         orderStatus: "PENDING",
@@ -142,8 +164,29 @@ export async function createOrder(data: OrderInput) {
       },
     });
 
+    // Increment promo usage count
+    if (appliedPromoCode) {
+      await incrementPromoUsage(appliedPromoCode);
+    }
+
     // Revalidate dashboard orders page
     revalidatePath("/dashboard/orders");
+
+    // Send admin email notification (non-blocking — errors are caught inside)
+    try {
+      const companyInfo = await prisma.companyInfo.findFirst({
+        select: { email: true },
+      });
+      await sendOrderNotificationEmail(
+        {
+          ...order,
+          items: orderItemsData,
+        },
+        companyInfo?.email
+      );
+    } catch (emailError) {
+      console.error("[Order] Email notification error:", emailError);
+    }
 
     return { success: true, data: order };
   } catch (error: any) {
