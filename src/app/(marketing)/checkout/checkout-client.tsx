@@ -156,7 +156,23 @@ export function CheckoutClient({ companyInfo }: { companyInfo?: any }) {
     };
   }, [cart, currency, cartItemCount, subtotal]);
 
-  const promoDiscount = appliedPromo ? appliedPromo.discountAmount : 0;
+  const getPromoDiscount = () => {
+    if (!appliedPromo) return 0;
+    if (appliedPromo.discountType === "PERCENTAGE") {
+      return (subtotal * appliedPromo.discountValue) / 100;
+    }
+    // FIXED
+    const EXCHANGE_RATE = 50;
+    let fixedAmount = appliedPromo.discountValue;
+    if (currency === "EGP" && appliedPromo.currency === "USD") {
+      fixedAmount = appliedPromo.discountValue * EXCHANGE_RATE;
+    } else if (currency === "USD" && appliedPromo.currency === "EGP") {
+      fixedAmount = appliedPromo.discountValue / EXCHANGE_RATE;
+    }
+    return Math.min(fixedAmount, subtotal);
+  };
+
+  const promoDiscount = getPromoDiscount();
   const total = subtotal + (shippingFee ?? 0) - promoDiscount;
 
   const clearCart = () => setCart([]);
