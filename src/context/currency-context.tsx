@@ -17,7 +17,7 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(
 const EXCHANGE_RATE = 50; // 1 USD = 50 EGP (Approximate)
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>("EGP");
 
   useEffect(() => {
     const storedCurrency = localStorage.getItem("currency") as Currency;
@@ -31,7 +31,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("currency", newCurrency);
   };
 
-  const formatPrice = (price: number, baseCurrency: Currency = "USD") => {
+  const formatPrice = (price: number, baseCurrency: Currency = "EGP") => {
     // If user's selected site currency is the same as the product's base currency, no conversion needed.
     if (currency === baseCurrency) {
       return new Intl.NumberFormat("en-US", {
